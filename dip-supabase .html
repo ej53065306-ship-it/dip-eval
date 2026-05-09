@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DIP評価システム</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Hiragino Kaku Gothic Pro','メイリオ',sans-serif;background:#f0f2f8;color:#2c3040;min-height:100vh}
+.page{max-width:720px;margin:0 auto;padding:16px 14px 60px}
+h1{font-size:19px;font-weight:700;margin-bottom:18px;color:#1a237e}
+h2{font-size:15px;font-weight:600;margin-bottom:10px;color:#283593}
+h3{font-size:13px;font-weight:600;margin-bottom:6px;color:#3949ab}
+.card{background:#fff;border-radius:12px;padding:18px;margin-bottom:14px;box-shadow:0 1px 6px rgba(0,0,0,.08)}
+.btn{display:inline-block;padding:10px 18px;border-radius:8px;border:none;cursor:pointer;font-size:14px;font-weight:600;transition:all .15s;outline:none}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:#3949ab;color:#fff}
+.btn-secondary{background:#e8eaf6;color:#3949ab}
+.btn-success{background:#2e7d32;color:#fff}
+.btn-danger{background:#c62828;color:#fff}
+.btn-warn{background:#e65100;color:#fff}
+.btn-sm{padding:6px 12px;font-size:12px}
+.btn-block{display:block;width:100%;margin-bottom:8px;text-align:center;padding:13px}
+input,select,textarea{width:100%;padding:10px 12px;border:1.5px solid #c5cae9;border-radius:8px;font-size:14px;margin-bottom:10px;outline:none;transition:border .15s;font-family:inherit;background:#fff;color:#2c3040}
+input:focus,select:focus,textarea:focus{border-color:#3949ab}
+textarea{resize:vertical;line-height:1.6;min-height:72px}
+.badge{display:inline-block;padding:2px 7px;border-radius:10px;font-size:11px;font-weight:600;vertical-align:middle}
+.badge-req{background:#e8eaf6;color:#3949ab}
+.badge-grow{background:#e8f5e9;color:#2e7d32}
+.badge-stage{background:#fff3e0;color:#bf360c;font-size:10px}
+.badge-store{background:#fce4ec;color:#880e4f}
+.badge-active{background:#e8f5e9;color:#1b5e20}
+.badge-period{background:#e3f2fd;color:#0d47a1}
+.score-wrap{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.score-opt{position:relative}
+.score-opt input{position:absolute;opacity:0;width:0;height:0}
+.score-opt label{display:block;padding:7px 11px;border:1.5px solid #c5cae9;border-radius:7px;font-size:12px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.score-opt input:checked+label{background:#3949ab;color:#fff;border-color:#3949ab}
+.gtoggle{display:flex;gap:8px;margin-top:8px}
+.gbtn{flex:1;padding:10px;border:1.5px solid #c5cae9;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;background:#fff;transition:all .15s;text-align:center}
+.gbtn.ok{background:#2e7d32;color:#fff;border-color:#2e7d32}
+.gbtn.ng{background:#c62828;color:#fff;border-color:#c62828}
+.item-name{font-size:14px;font-weight:600;margin:4px 0}
+.item-desc{font-size:11px;color:#777;margin-bottom:8px;line-height:1.55}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.status-card{padding:14px;border-radius:10px;border:1.5px solid #e0e0e0;background:#fff;cursor:pointer;transition:all .15s}
+.status-card:hover{border-color:#7986cb;background:#f3f4ff}
+.s-name{font-weight:700;font-size:15px}
+.s-status{font-size:12px;margin-top:4px}
+.done{color:#2e7d32}.pending{color:#e65100}
+.nav-back{display:inline-flex;align-items:center;gap:4px;color:#3949ab;background:none;border:none;font-size:13px;cursor:pointer;margin-bottom:16px;padding:4px 0;font-weight:600}
+.alert{padding:10px 14px;border-radius:8px;margin-bottom:12px;font-size:13px;line-height:1.5}
+.alert-info{background:#e8eaf6;color:#283593}
+.alert-warn{background:#fff3e0;color:#bf360c}
+.alert-ok{background:#e8f5e9;color:#1b5e20}
+.chip{display:inline-block;padding:3px 10px;border-radius:12px;background:#e8eaf6;color:#3949ab;font-size:12px;margin:2px}
+.check-row{display:flex;align-items:flex-start;gap:8px;margin-bottom:9px}
+.check-row input[type=checkbox]{margin-top:2px;width:15px;height:15px;flex-shrink:0;cursor:pointer}
+.check-row label{font-size:13px;line-height:1.45;cursor:pointer}
+.sec-head{background:#e8eaf6;padding:7px 12px;border-radius:6px;font-size:13px;font-weight:700;color:#283593;margin:14px 0 10px}
+.store-head{background:#fce4ec;padding:8px 14px;border-radius:8px;font-size:14px;font-weight:700;color:#880e4f;margin:16px 0 10px;display:flex;align-items:center;justify-content:space-between}
+.pbar{height:5px;background:#e0e0e0;border-radius:3px;margin-bottom:14px;overflow:hidden}
+.pbar-fill{height:100%;background:#3949ab;border-radius:3px;transition:width .4s}
+.stat-num{font-size:24px;font-weight:700}
+.rate-bar{height:8px;background:#e0e0e0;border-radius:4px;overflow:hidden;margin-top:6px}
+.rate-fill{height:100%;border-radius:4px;transition:width .4s}
+.comment-box{font-size:12px;padding:7px 10px;background:#f5f7ff;border-radius:7px;border-left:3px solid #9fa8da;line-height:1.6;color:#444;margin-top:4px}
+.staff-row{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid #f0f0f0;flex-wrap:wrap}
+.staff-row:last-child{border-bottom:none}
+summary{cursor:pointer;font-size:12px;color:#888;margin-top:8px;outline:none;user-select:none}
+details[open] summary{color:#3949ab}
+.pw-eye{position:relative;display:flex;gap:6px;align-items:center;margin-bottom:10px}
+.pw-eye input{margin-bottom:0;flex:1}
+.pw-eye button{flex-shrink:0;padding:10px 12px;border:1.5px solid #c5cae9;border-radius:8px;background:#fff;cursor:pointer;font-size:13px;color:#666;width:44px}
+.tab-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.tab-btn{padding:7px 14px;border-radius:20px;border:1.5px solid #c5cae9;background:#fff;font-size:13px;font-weight:600;cursor:pointer;color:#555;transition:all .15s}
+.tab-btn.active{background:#3949ab;color:#fff;border-color:#3949ab}
+.trend-wrap{overflow-x:auto;margin-top:8px}
+.trend-table{border-collapse:collapse;width:100%;font-size:12px;min-width:300px}
+.trend-table th{background:#e8eaf6;color:#283593;padding:7px 10px;text-align:center;font-weight:600;white-space:nowrap;border:1px solid #c5cae9}
+.trend-table th.left{text-align:left}
+.trend-table td{padding:7px 10px;text-align:center;border:1px solid #e8eaf6;white-space:nowrap}
+.trend-table td.label{text-align:left;font-weight:600;color:#333;background:#fafbff}
+.trend-up{color:#2e7d32;font-size:11px}
+.trend-dn{color:#c62828;font-size:11px}
+.trend-eq{color:#888;font-size:11px}
+.period-row{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid #f0f0f0;flex-wrap:wrap}
+.period-row:last-child{border-bottom:none}
+</style>
+</head>
+<body>
+<div class="page" id="app"></div>
+<script>
+const SB_URL = 'https://sxugmsddxlyfxdlcquxc.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN4dWdtc2RkeGx5ZnhkbGNxdXhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyODQ4NjIsImV4cCI6MjA5Mzg2MDg2Mn0.QNL4kXo_a5YEAltn-_DGQ34GqjgmLvTiObPp5Ta06ww';
+
+const enc=encodeURIComponent;
+const SBH=()=>({'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'});
+
+async function sbGet(table,params=''){
+  const r=await fetch(`${SB_URL}/rest/v1/${table}?${params}`,{headers:SBH()});
+  if(!r.ok)throw new Error(`GET ${table} ${r.status}`);
+  return r.json();
+}
+async function sbPost(table,body){
+  const r=await fetch(`${SB_URL}/rest/v1/${table}`,{method:'POST',headers:SBH(),body:JSON.stringify(body)});
+  return r.ok;
+}
+async function sbPatch(table,body,params){
+  const r=await fetch(`${SB_URL}/rest/v1/${table}?${params}`,{method:'PATCH',headers:SBH(),body:JSON.stringify(body)});
+  return r.ok;
+}
+async function sbDelete(table,params){
+  const r=await fetch(`${SB_URL}/rest/v1/${table}?${params}`,{method:'DELETE',headers:SBH()});
+  return r.ok;
+}
+async function sbUpsert(table,body,conflict){
+  const h={...SBH(),'Prefer':'resolution=merge-duplicates'};
+  const r=await fetch(`${SB_URL}/rest/v1/${table}?on_conflict=${conflict}`,{method:'POST',headers:h,body:JSON.stringify(body)});
+  return r.ok;
+}
+
+const C={stores:[],staff:[],goals:{},periods:[],settings:{},evals:[],ready:false};
+
+async function loadAll(){
+  const [stores,staff,goals,periods,settings,evals]=await Promise.all([
+    sbGet('stores','select=name&order=created_at'),
+    sbGet('staff','select=name,store,password&order=created_at'),
+    sbGet('goals','select=staff_name,item_ids'),
+    sbGet('periods','select=id,label,year,month&order=year,month'),
+    sbGet('settings','select=key,value'),
+    sbGet('evals','select=period_id,evaluator,target,scores,comments,ts'),
+  ]);
+  C.stores=stores.map(r=>r.name);
+  C.staff=staff;
+  C.goals=Object.fromEntries(goals.map(r=>[r.staff_name,r.item_ids||[]]));
+  C.periods=periods;
+  C.settings=Object.fromEntries((settings||[]).map(r=>[r.key,r.value]));
+  C.evals=evals.map(e=>({...e,scores:e.scores||{},comments:e.comments||{}}));
+  C.ready=true;
+}
+
+const getStores=()=>C.stores;
+const getStaff=()=>C.staff;
+const getGoals=()=>C.goals;
+const getEvals=()=>C.evals;
+const getPeriods=()=>[...C.periods].sort((a,b)=>a.year!==b.year?a.year-b.year:a.month-b.month);
+const getCurrentPeriodId=()=>C.settings.currentPeriodId||null;
+const getCurrentPeriod=()=>getPeriods().find(p=>p.id===getCurrentPeriodId())||null;
+const getAdminPw=()=>C.settings.adminpw||'tonton2025';
+const staffInStore=store=>C.staff.filter(s=>s.store===store);
+const findStaff=name=>C.staff.find(s=>s.name===name);
+const hasEval=(pid,ev,tg)=>C.evals.some(e=>e.period_id===pid&&e.evaluator===ev&&e.target===tg);
+const getEvalsFor=(target,periodId=null)=>C.evals.filter(e=>e.target===target&&(periodId===null||e.period_id===periodId));
+
+async function saveEval(periodId,evaluator,target,scores,comments={}){
+  const ts=Date.now();
+  C.evals=C.evals.filter(e=>!(e.period_id===periodId&&e.evaluator===evaluator&&e.target===target));
+  C.evals.push({period_id:periodId,evaluator,target,scores,comments,ts});
+  await sbUpsert('evals',{period_id:periodId,evaluator,target,scores,comments,ts},'period_id,evaluator,target');
+}
+async function addStoreDB(name){C.stores.push(name);render();await sbPost('stores',{name});}
+async function removeStoreDB(name){
+  const removed=C.staff.filter(s=>s.store===name).map(s=>s.name);
+  C.stores=C.stores.filter(s=>s!==name);C.staff=C.staff.filter(s=>s.store!==name);
+  removed.forEach(n=>delete C.goals[n]);
+  C.evals=C.evals.filter(e=>!removed.includes(e.evaluator)&&!removed.includes(e.target));
+  render();
+  await sbDelete('stores',`name=eq.${enc(name)}`);
+  for(const n of removed){
+    await sbDelete('goals',`staff_name=eq.${enc(n)}`);
+    await sbDelete('evals',`evaluator=eq.${enc(n)}`);
+    await sbDelete('evals',`target=eq.${enc(n)}`);
+  }
+  await sbDelete('staff',`store=eq.${enc(name)}`);
+}
+async function addStaffDB(name,store,password){C.staff.push({name,store,password});render();await sbPost('staff',{name,store,password});}
+async function removeStaffDB(name){
+  C.staff=C.staff.filter(s=>s.name!==name);delete C.goals[name];
+  C.evals=C.evals.filter(e=>e.evaluator!==name&&e.target!==name);render();
+  await sbDelete('staff',`name=eq.${enc(name)}`);
+  await sbDelete('goals',`staff_name=eq.${enc(name)}`);
+  await sbDelete('evals',`evaluator=eq.${enc(name)}`);
+  await sbDelete('evals',`target=eq.${enc(name)}`);
+}
+async function updateStaffPwDB(name,pw){
+  const m=C.staff.find(s=>s.name===name);if(m)m.password=pw;
+  await sbPatch('staff',{password:pw},`name=eq.${enc(name)}`);
+}
+async function toggleGoalDB(target,itemId,checked,el){
+  const sel=C.goals[target]||[];
+  if(checked){if(sel.length>=3){alert('最大3項目までです');el.checked=false;return;}sel.push(itemId);}
+  else sel.splice(sel.indexOf(itemId),1);
+  C.goals[target]=sel;
+  const c=$('sel-count');if(c)c.textContent=sel.length;
+  await sbUpsert('goals',{staff_name:target,item_ids:sel},'staff_name');
+}
+async function addPeriodDB(id,label,year,month){
+  C.periods.push({id,label,year,month});C.settings.currentPeriodId=id;render();
+  await sbPost('periods',{id,label,year,month});
+  await sbUpsert('settings',{key:'currentPeriodId',value:id},'key');
+}
+async function setActivePeriodDB(id){C.settings.currentPeriodId=id;render();await sbUpsert('settings',{key:'currentPeriodId',value:id},'key');}
+async function removePeriodDB(id){
+  C.periods=C.periods.filter(p=>p.id!==id);C.evals=C.evals.filter(e=>e.period_id!==id);
+  if(C.settings.currentPeriodId===id){
+    const newId=C.periods.length>0?C.periods[C.periods.length-1].id:null;
+    C.settings.currentPeriodId=newId;
+    if(newId)await sbUpsert('settings',{key:'currentPeriodId',value:newId},'key');
+  }
+  render();
+  await sbDelete('periods',`id=eq.${enc(id)}`);
+  await sbDelete('evals',`period_id=eq.${enc(id)}`);
+}
+async function changePwDB(p1){C.settings.adminpw=p1;await sbUpsert('settings',{key:'adminpw',value:p1},'key');}
+
+/* ── データ定義 ── */
+const REQUIRED=[
+  {id:'r_離脱率',cat:'治療家として',name:'①離脱率',desc:'対象期間の離脱率。治療家として最も重要な指標の一つ。',
+   opts:[[-5,'30%以上（-5）'],[1,'30%未満20%以上（1）'],[2,'20%未満15%以上（2）'],[4,'15%未満10%以上（4）'],[5,'10%未満5%以上（5）'],[6,'5%未満（6）']]},
+  {id:'r_笑顔',cat:'接客',name:'①最高の笑顔',desc:'ただ口角を上げるだけの笑顔ではなく、心からの笑顔。',
+   opts:[[0,'要改善（0）'],[1,'ある程度（1）'],[2,'できている（2）'],[3,'常にできている（3）'],[4,'最高（4）']]},
+  {id:'r_挨拶',cat:'接客',name:'②最高の挨拶/お見送り',desc:'それだけで元気になれる挨拶、私のことを本当に大切に想っていると感じることのできるお見送り。手を止める、最後まで目を見る等',
+   opts:[[0,'要改善（0）'],[1,'ある程度（1）'],[2,'できている（2）'],[3,'常にできている（3）'],[4,'最高（4）']]},
+  {id:'r_言葉遣い',cat:'接客',name:'③正しく適切な言葉遣い',desc:'正しい日本語、丁寧語・尊敬語・謙譲語の使い分け、適切な距離感の敬語',
+   opts:[[0,'要改善（0）'],[1,'ある程度（1）'],[2,'できている（2）'],[3,'常にできている（3）'],[4,'最高（4）']]},
+  {id:'r_信頼',cat:'チームワーク',name:'①信頼',desc:'コミュニケーション：自分を知ってもらう＆相手のことを知る。\n●リスクのない弱み\n→ミスや失敗を認めること、対人関係における欠点を認めること\n●リスクのある弱み\n→本人が目を背けたい内容で、周囲からみても「言ってはいけないんじゃないか」と思う内容。',
+   opts:[[-5,'信頼しようとしていない（-5）'],[0,'一部の人とは取れている（0）'],[1,'ほぼ全員と取れている（1）'],[2,'リスクなし弱みを少数に（2）'],[3,'リスクなし弱みを多数に（3）'],[4,'リスクあり弱みを少数に（4）'],[5,'リスクあり弱みを多数に（5）'],[6,'心理的安全確保（6）']]},
+  {id:'r_チーム関心',cat:'チームワーク',name:'②チームの結果への関心',desc:'必ずしも「他人を優先させること」ではないかもしれない。自分が今、最もチームに貢献できることは「自分の成長」の可能性もある。\nその行動は「誰のため（何のため）」の行動か。',
+   opts:[[-10,'チームより自身優先（-10）'],[0,'関心弱く行動なし（0）'],[1,'関心あるが行動なし（1）'],[3,'関心あり行動している（3）'],[4,'チームに貢献している（4）']]},
+  {id:'r_報連相',cat:'チームワーク',name:'③報告・連絡・相談',desc:'５W2H。適切なタイミングと方法で、適切な内容の、相手の立場や状況を考えた「質問で返されない報連相」ができているか。',
+   opts:[[-10,'努力がみられない（-10）'],[0,'努力しているが結果なし（0）'],[1,'少しずつ精度向上（1）'],[3,'できていることが多い（3）'],[4,'いつも適切（4）']]},
+  {id:'r_言い訳',cat:'人間力',name:'①言い訳',desc:'言い訳：自分にコントロールできないモノのせいにすること。\n※コントロールできないのであれば、感情や気持ちを含む',
+   opts:[[-5,'口癖である（-5）'],[0,'頻繁にある（0）'],[1,'たまにある（1）'],[2,'ほぼない（2）'],[3,'全くない（3）']]},
+  {id:'r_素直さ',cat:'人間力',name:'②素直さ',desc:'無知の知。自分が間違っているかもしれない、自分が知らないかもしれないという視点を持って指摘を聞き入れているか。そしてただ「聞いた」だけではなく、実際の行動やアウトプットに活かしているか。',
+   opts:[[-5,'ほぼ聞き入れない（-5）'],[0,'人によっては聞き入れる（0）'],[1,'たまに聞き入れない（1）'],[2,'ほぼ聞き入れる（2）'],[3,'聞き入れる（3）']]},
+  {id:'r_高い基準',cat:'人間力',name:'③高い基準',desc:'ストレッチゴール：達成確率が５０％程度の目標のこと。\n今日より明日、どうすればもっと上手くできるか。',
+   opts:[[-5,'低い基準で満足（-5）'],[0,'普通基準で満足（0）'],[1,'ストレッチゴール設定（1）'],[2,'高い基準（2）'],[3,'誰よりも高い基準（3）']]},
+  {id:'r_誠実さ',cat:'人間力',name:'④誠実さ',desc:'不誠実な行動や発言：嘘やごまかし 等\n誠実な行動や発言：嘘をつかず、自らの非を認め謝る 等',
+   opts:[[-5,'不誠実が多い（-5）'],[0,'稀に不誠実あり（0）'],[1,'不誠実はない（1）'],[2,'誠実が多くみられる（2）'],[3,'常に誠実（3）']]},
+  {id:'r_約束',cat:'人間力',name:'⑤約束を守る',desc:'約束：期日や時間を含む「言ったこと」や「決めたこと」 等',
+   opts:[[-5,'非常に多く破る（-5）'],[0,'破ることがある（0）'],[1,'ほぼ守っている（1）'],[2,'常に守る（2）']]},
+  {id:'r_影響力',cat:'人間力',name:'⑥影響力',desc:'悪い影響：消極的で不真面目な態度、やる気を感じさせない振る舞い、気分を害する発言 等\n良い影響：周囲を明るくする、モチベーションを上げる、背中を押してくれる 等',
+   opts:[[-5,'悪影響が多い（-5）'],[-2,'悪影響がある（-2）'],[0,'影響を与えない（0）'],[1,'いい影響がある（1）'],[3,'常にいい影響（3）']]},
+  {id:'r_体調管理',cat:'人間力',name:'⑦体調管理',desc:'「自分に合った」生活リズムの管理、睡眠時間の確保、休日の過ごし方、働き方をし、「万全でなかったからできなかったこと」が無いか。\n※持病等その限りではないが、最大限努力をすること。',
+   opts:[[-5,'不良多く改善なし（-5）'],[0,'不良多いが改善あり（0）'],[1,'たまに崩す（1）'],[2,'常に健康（2）'],[3,'常に万全（3）']]},
+  {id:'r_個人目標',cat:'経営',name:'①個人目標達成度',desc:'対象期間の目標達成度。\n２％以上高い場合、誰のいくら分を補填したか申請必要。',
+   opts:[[-5,'±30%以上（-5）'],[0,'±30%未満15%以上（0）'],[1,'±15%未満7%以上（1）'],[2,'±7%未満2%以上（2）'],[3,'±2%未満（3）'],[3.5,'補填プラス(未達)（3.5）'],[4,'補填プラス(達成)（4）']]},
+  {id:'r_集客',cat:'経営',name:'②集客',desc:'社長に届くほどの行動量を示すか、自身のしている活動内容をしっかりと社長に伝えることが必要。\n※見てくれていると思ったら大間違い。しっかりとアピールも必要。',
+   opts:[[-5,'ほぼ貢献なし（-5）'],[0,'指示のもと活動（0）'],[1,'深く関わっている（1）'],[2,'有用な提案がある（2）']]},
+  {id:'r_採用',cat:'経営',name:'③採用',desc:'社長に届くほどの行動量を示すか、自身のしている活動内容をしっかりと社長に伝えることが必要。\n※見てくれていると思ったら大間違い。しっかりとアピールも必要。',
+   opts:[[-5,'関心がない（-5）'],[0,'一部に携わっている（0）'],[1,'積極的な声掛け（1）'],[2,'紹介で面接到達（2）']]},
+];
+const GROWTH=[
+  {id:'g_t1a',cat:'治療',stage:'STAGE1',name:'技術チェック全部位合格',ok:'記載の通り',ng:''},
+  {id:'g_t1b',cat:'治療',stage:'STAGE1',name:'ペーパーテスト全部位合格',ok:'記載の通り',ng:''},
+  {id:'g_t2a',cat:'治療',stage:'STAGE2',name:'技術チェック全部位85%',ok:'記載の通り',ng:''},
+  {id:'g_t2b',cat:'治療',stage:'STAGE2',name:'ペーパーテスト全部位85%',ok:'記載の通り',ng:''},
+  {id:'g_t3a',cat:'治療',stage:'STAGE3',name:'技術チェック全部位90%',ok:'記載の通り',ng:''},
+  {id:'g_t3b',cat:'治療',stage:'STAGE3',name:'ペーパーテスト全部位90%',ok:'記載の通り',ng:''},
+  {id:'g_t4a',cat:'治療',stage:'STAGE4',name:'技術チェック全部位95%',ok:'記載の通り',ng:''},
+  {id:'g_t4b',cat:'治療',stage:'STAGE4',name:'ペーパーテスト全部位95%',ok:'記載の通り',ng:''},
+  {id:'g_t5a',cat:'治療',stage:'STAGE5',name:'新メニューのマニュアル作成－落とし込み勉強会',ok:'記載の通り',ng:''},
+  {id:'g_t5b',cat:'治療',stage:'STAGE5',name:'未作成部位のマニュアル作成－落とし込み勉強会',ok:'記載の通り',ng:''},
+  {id:'g_s1a',cat:'接客',stage:'STAGE1',name:'必修課題【接客】50%以上',ok:'記載の通り',ng:''},
+  {id:'g_s1b',cat:'接客',stage:'STAGE1',name:'マニュアル通りの接客がある程度できる',ok:'大きく問題のある対応がない',ng:'対応を任せると不備があることが多い'},
+  {id:'g_s2a',cat:'接客',stage:'STAGE2',name:'言われる前にホスピタリティを発揮できる',ok:'辛そうな患者に手を差し伸べる\n雨で濡れていたらタオルを渡す\n等が常にできる',ng:'患者に言われて初めて気づき動く\n患者に対するアンテナ力が弱い'},
+  {id:'g_s2b',cat:'接客',stage:'STAGE2',name:'一部の患者に対して楽しんでもらうためのコミュニケーションが取れる',ok:'積極的にコミュニケーションを取る\n５つのルールを使えている',ng:'積極的にコミュニケーションを取らない\n５つのルールを使えていない'},
+  {id:'g_s2c',cat:'接客',stage:'STAGE2',name:'マニュアル通りの接客が完璧にできる',ok:'要所は全て押さえており、抜けが無い\n※もちろん臨機応変な対応は考慮する',ng:'大きく問題のある対応はないが、抜けがあることもある'},
+  {id:'g_s3a',cat:'接客',stage:'STAGE3',name:'相手が思いがけないホスピタリティを発揮できる',ok:'マニュアル外のホスピタリティを常に発揮できる\n相手がおどろくような接客が多くできる\n常にアンテナを張り巡らせている',ng:'患者の想定の範囲内の接客しかできない\n悪い意味でマニュアルを厳守している\n多忙なとき等、患者に対してアンテナを張れていない'},
+  {id:'g_s3b',cat:'接客',stage:'STAGE3',name:'ほぼ全ての患者に対して楽しんでもらうためのコミュニケーションが取れる',ok:'どの患者に対していつでも最高のコミュニケーションが取れる\n５つのルールが常に徹底されている',ng:'最大限ホスピタリティを発揮できない患者がいる\n５つのルールを使えてはいるが、徹底できていない'},
+  {id:'g_s3c',cat:'接客',stage:'STAGE3',name:'他者が模範にする接客ができている',ok:'見習うべき点が非常に多くある\n接客におけるロールモデルにしている\n新入社員等、接客力の弱い従業員は当スタッフを見て学ぶべきである',ng:'見習うべき点はあるが、多いわけではない\nロールモデルにするほどの接客ではない\n接客力の弱い従業員は、見て学ぶべきスタッフが他にいる'},
+  {id:'g_s4a',cat:'接客',stage:'STAGE4',name:'ハイレベルな接客をマニュアル化/仕組化できる',ok:'患者に感動を与える内容で、マニュアル改定や新たなマニュアルを作成する\n積極的な教育により、店舗/会社全体の接客力向上に寄与している',ng:'接客レベルは高いが、同僚のレベルアップに大きく貢献しているわけではない\n自分だけがハイレベルな接客を実行できる'},
+  {id:'g_h1a',cat:'人間力',stage:'STAGE1',name:'必修課題【人間力】50%以上',ok:'記載の通り',ng:''},
+  {id:'g_h2a',cat:'人間力',stage:'STAGE2',name:'感情のコントロールができる',ok:'出来事に対し理論的に捉えることができる\n感情的になる場面でも、理論を優先して合理的な判断を下すことができる',ng:'出来事に対し感情的に反応し、それを態度や表情に出す\n感情が優先し、理論的な判断ができない'},
+  {id:'g_h2b',cat:'人間力',stage:'STAGE2',name:'ストレスコントロールができる',ok:'プレッシャーに強く、批判やクレームにも常に冷静に対処できる\nストレスがあっても安定したアウトプットができる\n自身のストレスの兆候を理解し、適切に対処する',ng:'緊張感に弱く、平静さを失う。パニックを起こす\nストレスがあると仕事に激しく影響する\nストレスに弱い自覚がなく、無理をし過ぎて潰れてしまう'},
+  {id:'g_h2c',cat:'人間力',stage:'STAGE2',name:'他者への貢献が多少みられる',ok:'新入社員や後輩などにオペレーション教育ができる\n※誰にでも教えることができる内容',ng:'他者に無関心で、教育を怠っている'},
+  {id:'g_h3a',cat:'人間力',stage:'STAGE3',name:'課題の分離ができる',ok:'【課題の分離】に関する正しい知識がある\n水辺までは連れているが、飲ませようとはしない',ng:'【課題の分離】に関する間違った認識をしている\n水辺まで連れて行かない、もしくは水辺に連れて行ったあと強引に水を飲ませようとする'},
+  {id:'g_h3b',cat:'人間力',stage:'STAGE3',name:'前向きな失敗ができる',ok:'やったことのない課題に果敢に挑戦する\n失敗を恐れず、失敗を認めることができ、できなかったことに目を向けることができる',ng:'できない課題や初挑戦の課題へのチャレンジが消極的である\n失敗を認めることができず、できたことに過剰に執着する'},
+  {id:'g_h3c',cat:'人間力',stage:'STAGE3',name:'相手を適切に頼ることができる',ok:'自分にはできないことは他者に助けを求めることができる\nそれにより業務を円滑に回し、適切な役割分担をすることができる',ng:'自分にはできないことも全て背負い込もうとする\nそれにより、本来やるべきことがおろそかになっている'},
+  {id:'g_h3d',cat:'人間力',stage:'STAGE3',name:'他者に貢献している',ok:'自分の強みを活かし、後輩や同僚を助けることができる\n他者に目を向け、自分が相手になにを与えることができるか常にアンテナを張っている',ng:'間違った内容、もしくは精度の低い内容の教育が目立つ\n自分が相手になにを与えられるかというより、頼られたときに必要最低限の協力のみ行っている'},
+  {id:'g_h4a',cat:'人間力',stage:'STAGE4',name:'常に同僚の味方でいることができる',ok:'見捨てず、諦めない\nあえて厳しいフィードバックをする\n愛があり、肯定的なフィードバックがあり、相手を認めることができる',ng:'見捨てたり、諦めたりする\nあえて厳しいフィードバックをしない\n拒絶的で否定的、批判的なフィードバックが多い'},
+  {id:'g_h4b',cat:'人間力',stage:'STAGE4',name:'失敗から学び同じ失敗を繰り返さない',ok:'短期間で積極的な失敗をしようとする\n全ての失敗から学び、全く同じ失敗をしない',ng:'最小限の失敗にとどめようとする\n似た失敗を繰り返し、成長が遅い'},
+  {id:'g_h4c',cat:'人間力',stage:'STAGE4',name:'自分を客観視することができる',ok:'自己認識と他者認識がある程度一致している\n自分の行動や思考について内省し、なぜそう考えたか、なぜそう行動したかが明確である',ng:'自己認識と他者認識が乖離している\n自分の行動や思考について内省せず、行動や思考の理由が曖昧である'},
+  {id:'g_h4d',cat:'人間力',stage:'STAGE4',name:'多様性を認め活かすことができる',ok:'【多様性】についての正しい認識がある\n自分と違う価値観を認め、積極的に交流、吸収しようとし、互いの強みを活かす\n必要な同質性を見失わず大切にする',ng:'【多様性】について誤った認識をしている\n自分と違う価値観を認めようとせず、距離を置いたり排除しようとする\n必要な同質性を見失う'},
+  {id:'g_h4e',cat:'人間力',stage:'STAGE4',name:'圧倒的に他者に貢献している',ok:'他者の自立を促し、ある分野で自分が不要になるような教育ができている\nテクニカルな部分だけではなく、メンタル面の支えにもなるようなコミュニケーションがとれ、人間的な成長にも寄与している',ng:'教育はしているが、依存的な教育となっている\nあくまでテクニカルな指導、教育にとどまり、人としての成長や心の支えとなるコミュニケーションは取れていない'},
+  {id:'g_h5a',cat:'人間力',stage:'STAGE5',name:'承認欲求から解放され、貢献感により幸福感を獲得できる',ok:'基準を外部ではなく、自分の中に置いている\n他者をコントロールしようとせず、自分のコントロールできることに集中できる\n他者の評価によりモチベーションが左右されない\n見返りに関係なく、なすべきことをなす',ng:'相手にどう思われるかを大きな基準軸にしている\n他者をコントロールしようとすることがある\n他者の評価によりモチベーションが大きく左右されてしまう\n見返りを求め、見返りがなければネガティブに反応する'},
+  {id:'g_w1a',cat:'仕事力',stage:'STAGE1',name:'自分の数字管理ができる',ok:'数字についての正しい知識がある\n自身の現在の数字を正しく把握している',ng:'数字について誤った認識をしている\n自身の現在の数字を把握していない、間違った把握をしている'},
+  {id:'g_w1b',cat:'仕事力',stage:'STAGE1',name:'情報収集を行っている',ok:'読書やメルマガ、セミナーなどで定期的に情報収集をしている',ng:'インプットせず、自身の知識のみであらゆる判断をしている'},
+  {id:'g_w2a',cat:'仕事力',stage:'STAGE2',name:'高速でPDCAを回すことができる',ok:'1日毎の目標未達の原因を1日毎に管理している\n即日分析し、即日対策を立てることで、翌日には改善されている',ng:'1日毎の目標未達を数日間放置してしまう\n原因分析と対策の間に数日の期間が空いてしまう'},
+  {id:'g_w2b',cat:'仕事力',stage:'STAGE2',name:'得た情報を発信したり、得た情報に基づき行動できている',ok:'得た情報を共有している\n得た情報を実行に移している',ng:'得た情報を共有しない\n得た情報を実行に移さない'},
+  {id:'g_w2c',cat:'仕事力',stage:'STAGE2',name:'目標達成をすることができる',ok:'目標の達成にこだわり、決してあきらめない\n目標を達成するためにあらゆる手段を尽くす\n目標達成の阻害要因を取り除く',ng:'目標達成をすぐに諦める、納期を守らない\n目標達成のためのアプローチを変えない。別の方法を検討しない\n達成ができない理由を環境などの外的要因のせいにする'},
+  {id:'g_w2d',cat:'仕事力',stage:'STAGE2',name:'適切な業務時間配分/優先順位付けができている',ok:'タスクごとに適切な時間を配分している\n緊急度と重要度、難易度と成果を考慮した優先順位付けができている',ng:'すぐ終わるはずのタスクに過剰に時間をかけている\n今やるべきでないタスクをやったり、すぐにやるべきタスクを後回しにしたりしている'},
+  {id:'g_w3a',cat:'仕事力',stage:'STAGE3',name:'店舗で起きること全てに当事者意識を持っている',ok:'自身とは直接的に無関係な店舗の問題も自分事化して考えている\n全て自分事として店舗の問題解決にあたっている',ng:'自身に直接的に無関係な店舗の問題に対し関心がない\n他人事と思って店舗の問題解決にあたっている'},
+  {id:'g_w3b',cat:'仕事力',stage:'STAGE3',name:'圧倒的な情報収集を行っている',ok:'常に新しい情報に触れ、常に課題図書を持ち、今必要な情報も今後必要となる情報も収集を欠かしていない',ng:'情報収集の量やスピードが遅く、人から教わることの方が多い'},
+  {id:'g_w3c',cat:'仕事力',stage:'STAGE3',name:'率先した行動がとれる',ok:'チームでなにかやるとき、真っ先に手を上げる\n皆がやらない仕事を積極的に行う',ng:'チームでなにかやるとき、他人の様子をうかがう\nやりたくない仕事に消極的になる'},
+  {id:'g_w4a',cat:'仕事力',stage:'STAGE4',name:'会社で起きること全てに当事者意識を持っている',ok:'自身とは直接的に無関係な会社の問題も自分事化して考えている\n全て自分事として会社の問題解決にあたっている',ng:'自身に直接的に無関係な会社の問題に対し関心がない\n他人事と思って会社の問題解決にあたっている'},
+  {id:'g_w4b',cat:'仕事力',stage:'STAGE4',name:'得た情報を圧倒的に発信したり、得た情報に基づき圧倒的に行動できている',ok:'新たなチャレンジや提案数が多い\n考え方や思考のアップデートが頻繁にある',ng:'新たなチャレンジや提案数が少ない\n考え方や思考がアップデートされず、変わらない'},
+  {id:'g_w4c',cat:'仕事力',stage:'STAGE4',name:'業務効率化（生産性向上）ができている',ok:'成果量を変えず、時短することができる\n時間を変えず、成果量を増やすことができる',ng:'同じ生産性で業務を継続している\n生産性が理解できておらず、成果を落としたり、成果を上げた分時間も増やす等してしまう'},
+  {id:'g_w4d',cat:'仕事力',stage:'STAGE4',name:'フレームワーク思考ができる',ok:'自分の考えを短時間でまとめ、整理することができる\n文章ではなく、形として捉えることができ、アウトプットできる',ng:'自分の考えがまとまらず、ごちゃごちゃしている\n形ではなく文章として捉えているため、アウトプットの際全体像が不明確だったり、理解しにくかったりする'},
+  {id:'g_w5a',cat:'仕事力',stage:'STAGE5',name:'物事を理論的に考え問題を解決することができる',ok:'前提、問題、原因、解決策、効果性を区別して考えることができる\n物事の共通項や差異に着目し、結果を数字で管理できている\n的確な原因分析や解決策を提示できる',ng:'どの段階の話なのか区別できておらず、違う段階の話をまとめて考えてしまう\n物事の共通項や差異が分からず、具体的な数字を絡めた結果想定ができていない\n的確でない原因分析や解決策にとどまる'},
+  {id:'g_w5b',cat:'仕事力',stage:'STAGE5',name:'適切な業務委任ができる',ok:'責任ある業務を勇気をもって手放すことができる\n背景や目的、出すべき結果を的確に伝えることができる\n相手の力量や適性を考え、適切な相手に業務を委任することができる',ng:'責任ある業務を自分で抱え込む\n自分が把握していない業務を単に丸投げしてしまう\n不適切な相手に業務を委任してしまう'},
+  {id:'g_w5c',cat:'仕事力',stage:'STAGE5',name:'情報が曖昧でも然るべきときに責任を持って決断できる',ok:'材料がそろわなくても適切なタイミングで決断し、他の選択肢を捨てる\n決断に際して、その責任を負う覚悟がある\n決断するための選択肢を徹底的に検証し、根拠ある決断をする',ng:'決断すべきタイミングであっても、迷ったまま、決断を先延ばしにする\n責任を負う覚悟がなく、決断しない\n選択肢の検証が甘く、リスクも想定せず、何の根拠もない決断をする'},
+  {id:'g_w6a',cat:'仕事力',stage:'STAGE6',name:'利益志向により突出した利益貢献をしている',ok:'売上・人件費・原価・経費を常に把握している\n売上を上げ、経費を下げる施策をいつも考え、実行している\n市場や競合の動きを良く知り、利益を上げている企業をよく研究している',ng:'売上・人件費・原価・経費を把握していない\n利益を上げる施策を考えていない。コスト管理がずさんである\n市場や競合を見ていない。営利的な考えを取らない'},
+  {id:'g_m1a',cat:'会議',stage:'STAGE1',name:'常に【ゴール】を意識できている',ok:'なにを決めるための会議なのかを見失わない',ng:'なにを決めるための会議なのか見失う'},
+  {id:'g_m1b',cat:'会議',stage:'STAGE1',name:'会議の重要性を理解している',ok:'会議についての知見を深めようとする\n価値のある会議をしようという意思のもと、会議に参加する\n生産的で高密度な会議は効果的で、それは参加者全員が協力しなければ実現できないことを理解している',ng:'会議についての知識を深めようとしない\nなにも考えずに会議に参加している\n短絡的に「会議は少ない方がいい」「会議は短い方がいい」と判断し、良好な会議の構築に協力しない'},
+  {id:'g_m2a',cat:'会議',stage:'STAGE2',name:'適切な量の発言ができる',ok:'端的に適切な量の発言がある\n周囲との発言バランスが取れている\n質問や確認ではなく、決定に携わろうとする意見を言うことができる',ng:'ほとんど発言がない、話が長い\n発言頻度が明らかに一人だけ多い\n発言はするが、質問や確認に終始する'},
+  {id:'g_m2b',cat:'会議',stage:'STAGE2',name:'反対意見を述べることができる',ok:'同僚圧力に負けずに反対意見が言える\n反対意見は主観や感覚ではなく、数字や実際に基づいている\n代替案がある（全てでなくともよい）',ng:'同僚圧力に負け反対意見を言わない\n会議のあとに非公式な場で反対意見を言う\n主観や感覚に基づいた反対意見しか言えない\n代替案がない'},
+  {id:'g_m2c',cat:'会議',stage:'STAGE2',name:'適切な情報提供や情報発信ができる',ok:'期待されている、もしくはそれ以上の情報提供や発言ができる',ng:'求められていない内容の情報提供をしてしまう\n提供した内容の量が明らかに足りない'},
+  {id:'g_m3a',cat:'会議',stage:'STAGE3',name:'課題に対する十分な情報収集ができる',ok:'常に有識者として会議に臨んでいる\n足りない情報を本やネット、人に聞くなどでいつも仕入れている',ng:'議題に対して理解が浅い状態で会議に臨んでいる\n足りない情報を十分に収集していない\nネット等ですぐに分かるようなことも、そのままにしてしまう'},
+  {id:'g_m3b',cat:'会議',stage:'STAGE3',name:'事前プチ会議（根回し）ができる',ok:'会議当日までに、少数で意見交換をする場を積極的に設定している\n会議当日に想定される反論や指摘などを予め処理できている',ng:'会議当日に、初めてその議題について触れる\n会議前に処理できるはずの反論や指摘をそのままにし、会議を不必要に長引かせる'},
+  {id:'g_m3c',cat:'会議',stage:'STAGE3',name:'当日の十分なイメージをして会議に臨んでいる',ok:'これは簡単に終わる、これはカオスになる、そのときはこうする等、イメージができている\nイメージ通りに会議が進み、円滑な進行ができる\nイメージからズレたときは執着せず、即座に再考できるorついていける',ng:'イメージしておらず、ぶっつけ本番で挑む\nいつもイメージ通りに会議が進まず、進行が止まる\nイメージからズレても過剰に執着し、会議が進まなかったり、重要な論点がおざなりになる'},
+  {id:'g_m3d',cat:'会議',stage:'STAGE3',name:'有効なブレインストーミングができる',ok:'会議の決定に関係する意見が言える\nその場の思い付きだけではなく、事前に十分に考えをまとめてきている\n他者の意見から着想を受け、新たなアイデアを生むことができる',ng:'会議の決定に関与しない意見しか言えない\n事前準備が甘く、その場で考えての発言しかできない\n事前に準備してきた発言しか言えず、その場で新たなアイデアが生まれない'},
+  {id:'g_m4a',cat:'会議',stage:'STAGE4',name:'隠れファシリテーションができる',ok:'ファシリテーターが困ったときの助け舟を出せる\nファシリテーターがしてほしいことを理解し、行動に移せる',ng:'ファシリテーターが困ったとき助けられない\nファシリテーターの意図を理解せず、必要以上に自由に振る舞う'},
+  {id:'g_m4b',cat:'会議',stage:'STAGE4',name:'説得力のあるプレゼンテーションができる',ok:'数字やデータによって裏付けられた提案ができる\n伝えたいことを的確に効果的に伝える\n熱意があり、感情を揺さぶられる',ng:'感想や主観による根拠のない提案になっている\n結果が最後にきたり、説明が長かったり、なにを伝えたいのか理解しにくい\n熱意がなく、感情が揺さぶられない'},
+  {id:'g_m5a',cat:'会議',stage:'STAGE5',name:'ファシリテーションができる',ok:'適切な人に意見を振り、効果的な議論を促進できる\n時間通りにゴールを達成することができる\n参加者に活気があり、不必要な沈黙の無い高密度な会議ができる',ng:'会議を作ることができず、周囲に流されてしまう\n時間を大幅に超えたり、ゴールが達成できなかったりする\n参加者に活気がなく、不必要な沈黙を生み出す'},
+  {id:'g_m5b',cat:'会議',stage:'STAGE5',name:'的確な論点整理ができる',ok:'複雑な議論の中、複数の論点を見つける\n論点をフレームワーク化し、優先順位を付けたり強弱を把握したりできる\n今どの論点について解決すべきか、的確な判断ができる',ng:'複雑な議論に巻き込まれ、論点が分からなくなる\n優先順位決めや強弱が把握できず、全て横並びになってしまう\n不要な論点に着目してしまう'},
+  {id:'g_c1a',cat:'チームワーク',stage:'STAGE1',name:"必修課題【チームワーク】の『信頼』2.2以上",ok:'記載の通り',ng:''},
+  {id:'g_c1b',cat:'チームワーク',stage:'STAGE1',name:"必修課題【チームワーク】の『信頼』以外の平均スコア50%以上",ok:'記載の通り',ng:''},
+  {id:'g_c2a',cat:'チームワーク',stage:'STAGE2',name:'重要な問題提起ができる',ok:'誰も言わない（言えない）本当に大切な問題を掘り起こして提起する\n不必要な問題は切り捨てる',ng:'予定調和や同調圧力に屈し、重要な問題から目を背ける\n不必要な問題に過剰に労力と時間を費やす'},
+  {id:'g_c2b',cat:'チームワーク',stage:'STAGE2',name:'小さな決定を行うことができる',ok:'リスクの少ない事案の決定を積極的に行う\n全会一致や多数決の誘惑に負けない\n決定に責任を持つ覚悟がある',ng:'リスクの少ない事案の決定にすら携わらない\n全会一致や多数決の誘惑に負けてしまう\n決定を誰かに任せる、もしくは自分のした決定の根拠を外部に求めようとする'},
+  {id:'g_c2c',cat:'チームワーク',stage:'STAGE2',name:'生産的な意見の衝突ができる',ok:'同じ目標に向かって、より良いアイデアや概念をぶつけることができる\n反論に屈せず、納得するまで議論を重ねる',ng:'表面的な調和を保ち、意見を言わない\n対象がアイデアや概念ではなく、個人である\n反論に屈し、納得しないまま議論を終える'},
+  {id:'g_c3a',cat:'チームワーク',stage:'STAGE3',name:'衝突を引き起こすことができる',ok:'他者の、言っていない反対意見や提案を公式な場に持ち出す\n反対意見がありそう、納得していなさそうな人に意見を振り、逃がさない\nリアルタイムの許可を出している',ng:'実は知っている他者の反対意見や提案を隠し続ける\n反対意見がありそう、納得していなそうな人をスルーする、もしくは逃がす\n気まずい雰囲気をスルーし、肯定的なフォローを入れない'},
+  {id:'g_c3b',cat:'チームワーク',stage:'STAGE3',name:'合意しなくとも責任を果たしている',ok:'本当は反対でも、決定後は態度をガラっと変える\n決定事項を遵守する',ng:'一度決まったことを、後から掘り返す\n決定事項を守ろうとしない'},
+  {id:'g_c3c',cat:'チームワーク',stage:'STAGE3',name:'同僚のミスや失敗へ説明責任を追及できる',ok:'見て見ぬふりをしない\n言うときは厳しくフィードバックをする\n指摘するだけでなく、本質的な問題の解決や改善も促す',ng:'見て見ぬふりをする\n気まずさを恐れて必要以上に優しいフィードバックをしてしまう\n本質的な問題の解決までいかず、その場の指摘に留まってしまう'},
+  {id:'g_c4a',cat:'チームワーク',stage:'STAGE4',name:'常に自分よりもチームを優先している',ok:'自分がいかに不利になる状況でも、チームを優先する\n自分よりも店舗、店舗よりも会社を優先する\n自分の行動がチームにどう影響するかを常に考え行動している',ng:'自分が不利にならないよう、チームの利益を後回しにする\n身近なことから優先し、俯瞰して見れていない\nチームへの影響よりも、自分の我を通すことの優先順位が高い'},
+  {id:'g_c4b',cat:'チームワーク',stage:'STAGE4',name:'同僚への高い基準を求めている',ok:'同僚にストレッチゴール以上のゴール設定をさせる\n細かいミスや妥協を許さない\nできないことにチャレンジさせる',ng:'並みの目標で満足してしまう\n普通の水準以上の仕事や成果を期待しない\nできることのみに従事させる'},
+];
+const ALL_ITEMS=[...REQUIRED,...GROWTH];
+
+let S={screen:'home',fbMode:'period',fbPeriodId:null};
+let growthVals={};
+function go(screen,extra={}){
+  const cp=getCurrentPeriodId();
+  Object.assign(S,{screen,fbMode:'period',fbPeriodId:cp},extra);
+  growthVals={};render();
+}
+const $=id=>document.getElementById(id);
+const app=document.getElementById('app');
+
+function render(){
+  const map={home,staffLogin,adminLogin,adminMenu,storeSetup,staffSetup,
+    periodSetup,goalSetup,goalSetupEdit,evalList,evalForm,myFeedback,
+    adminStatus,feedbackMenu,feedbackView};
+  app.innerHTML=(map[S.screen]||(() =>''))();
+}
+
+function home(){
+  const stores=getStores(),staff=getStaff(),cp=getCurrentPeriod();
+  const ready=stores.length>0&&staff.length>0;
+  return`<div style="text-align:center;padding:44px 10px 28px">
+    <div style="font-size:13px;color:#888;margin-bottom:5px">株式会社とんとん</div>
+    <h1 style="font-size:26px;margin-bottom:5px">DIP評価システム</h1>
+    <p style="font-size:13px;color:#888;margin-bottom:24px">相互評価・フィードバック</p>
+    ${cp?`<div style="margin-bottom:20px"><span class="badge badge-active" style="font-size:13px;padding:5px 14px">📅 現在の評価期間：${cp.label}</span></div>`
+      :'<div class="alert alert-warn" style="text-align:left;margin-bottom:16px;max-width:380px;margin-left:auto;margin-right:auto">⚠ 評価期間が設定されていません。管理者が設定してください。</div>'}
+    ${!ready?`<div class="alert alert-warn" style="text-align:left;margin-bottom:16px;max-width:380px;margin-left:auto;margin-right:auto">⚠ 店舗・スタッフを先に設定してください。</div>`:''}
+    ${ready&&cp?`<button class="btn btn-primary btn-block" style="font-size:16px;padding:16px;margin-bottom:12px;max-width:380px;margin-left:auto;margin-right:auto" onclick="go('staffLogin')">📝 評価を入力する（スタッフ）</button>`:''}
+    <button class="btn btn-secondary btn-block" style="max-width:380px;margin-left:auto;margin-right:auto" onclick="go('adminLogin')">🔑 管理者ログイン</button>
+  </div>`;
+}
+
+function staffLogin(){
+  const stores=getStores(),cp=getCurrentPeriod();
+  return`<button class="nav-back" onclick="go('home')">← ホームへ</button>
+  <h1>スタッフログイン</h1>
+  ${cp?`<div class="alert alert-info">📅 評価期間：<strong>${cp.label}</strong></div>`:''}
+  <div class="card">
+    <h2>① 店舗を選択</h2>
+    <select id="sel-store" onchange="updateStaffSel()">
+      <option value="">-- 店舗を選択 --</option>
+      ${stores.map(s=>`<option value="${s}">${s}</option>`).join('')}
+    </select>
+    <h2>② 名前を選択</h2>
+    <select id="sel-name"><option value="">-- 先に店舗を選択 --</option></select>
+    <h2 style="margin-top:4px">③ パスワード</h2>
+    <div class="pw-eye">
+      <input type="password" id="staff-pw" placeholder="個人パスワードを入力" onkeydown="if(event.key==='Enter')doStaffLogin()">
+      <button onclick="togglePw('staff-pw',this)">👁</button>
+    </div>
+    <button class="btn btn-primary btn-block" onclick="doStaffLogin()">ログイン</button>
+    <p id="login-err" style="color:#c62828;font-size:13px;margin-top:6px;min-height:18px"></p>
+  </div>
+  <div class="alert alert-info" style="font-size:12px">🔒 評価は匿名で集計されます。</div>`;
+}
+function updateStaffSel(){
+  const store=$('sel-store')?.value,sel=$('sel-name');
+  if(!sel)return;
+  if(!store){sel.innerHTML='<option value="">-- 先に店舗を選択 --</option>';return;}
+  sel.innerHTML='<option value="">-- 名前を選択 --</option>'+
+    staffInStore(store).map(m=>`<option value="${m.name}">${m.name}</option>`).join('');
+}
+function doStaffLogin(){
+  const store=$('sel-store')?.value,name=$('sel-name')?.value,
+        pw=$('staff-pw')?.value,err=$('login-err');
+  if(!store||!name){err.textContent='店舗と名前を選択してください';return;}
+  if(!pw){err.textContent='パスワードを入力してください';return;}
+  const m=findStaff(name);
+  if(!m||m.store!==store||m.password!==pw){err.textContent='パスワードが違います';return;}
+  const cp=getCurrentPeriodId();
+  if(!cp){err.textContent='評価期間が設定されていません。管理者にご確認ください。';return;}
+  go('evalList',{user:name,userStore:store,periodId:cp});
+}
+function togglePw(id,btn){
+  const el=$(id);if(!el)return;
+  el.type=el.type==='password'?'text':'password';
+  btn.textContent=el.type==='password'?'👁':'🙈';
+}
+
+function adminLogin(){
+  return`<button class="nav-back" onclick="go('home')">← 戻る</button>
+  <div class="card">
+    <h2>管理者ログイン</h2>
+    <input type="password" id="pw" placeholder="管理者パスワード" onkeydown="if(event.key==='Enter')doAdminLogin()">
+    <button class="btn btn-primary btn-block" onclick="doAdminLogin()">ログイン</button>
+    <p id="err" style="color:#c62828;font-size:13px;margin-top:6px"></p>
+  </div>
+  <p style="font-size:12px;color:#aaa;text-align:center">初期パスワード: tonton2025</p>`;
+}
+function doAdminLogin(){
+  if($('pw')?.value===getAdminPw())go('adminMenu');
+  else if($('err'))$('err').textContent='パスワードが違います';
+}
+
+function adminMenu(){
+  const staff=getStaff(),goals=getGoals(),evals=getEvals(),stores=getStores();
+  const cp=getCurrentPeriod();
+  const goalCount=staff.filter(s=>(goals[s.name]||[]).length>0).length;
+  const totalEvals=stores.reduce((sum,st)=>{const n=staffInStore(st).length;return sum+n*(n-1);},0);
+  const periodEvals=cp?evals.filter(e=>e.period_id===cp.id).length:0;
+  return`<button class="nav-back" onclick="go('home')">← ホームへ</button>
+  <h1>管理者メニュー</h1>
+  ${cp?`<div class="alert alert-ok">📅 現在の評価期間：<strong>${cp.label}</strong></div>`
+    :'<div class="alert alert-warn">⚠ 評価期間が未設定です。先に評価期間を作成してください。</div>'}
+  <div class="card"><h2>① 評価期間設定</h2>
+    <p style="font-size:13px;color:#777;margin-bottom:10px">月ごとの評価期間を作成・管理します（${getPeriods().length}期間）</p>
+    <button class="btn btn-primary btn-block" onclick="go('periodSetup')">評価期間を設定する →</button></div>
+  <div class="card"><h2>② 店舗設定</h2>
+    <p style="font-size:13px;color:#777;margin-bottom:10px">院・店舗を管理します（${stores.length}店舗）</p>
+    <button class="btn btn-primary btn-block" onclick="go('storeSetup')">店舗を設定する →</button></div>
+  <div class="card"><h2>③ スタッフ設定</h2>
+    <p style="font-size:13px;color:#777;margin-bottom:10px">スタッフ・パスワード・所属店舗を設定します（${staff.length}名）</p>
+    <button class="btn btn-primary btn-block" onclick="go('staffSetup')">スタッフを設定する →</button></div>
+  <div class="card"><h2>④ 取り組み設定</h2>
+    <p style="font-size:13px;color:#777;margin-bottom:10px">各スタッフの行動目標（期間をまたいで引き継ぎ）（設定済 ${goalCount}/${staff.length}名）</p>
+    <button class="btn btn-primary btn-block" onclick="go('goalSetup')">取り組みを設定する →</button></div>
+  <div class="card"><h2>⑤ 評価状況確認</h2>
+    <p style="font-size:13px;color:#777;margin-bottom:10px">${cp?`${cp.label}の提出状況（${periodEvals}/${totalEvals}件 提出済）`:'評価期間を設定してください'}</p>
+    <button class="btn btn-secondary btn-block" onclick="go('adminStatus')">状況を確認する →</button></div>
+  <div class="card"><h2>⑥ フィードバック閲覧</h2>
+    <p style="font-size:13px;color:#777;margin-bottom:10px">月別集計・トレンドを閲覧します（管理者専用）</p>
+    <button class="btn btn-secondary btn-block" onclick="go('feedbackMenu')">フィードバックを見る →</button></div>
+  <div class="card" style="border:1px solid #ffcdd2"><h2 style="color:#c62828">⑦ 管理者パスワード変更</h2>
+    <input type="password" id="np1" placeholder="新しいパスワード（4文字以上）">
+    <input type="password" id="np2" placeholder="確認入力">
+    <button class="btn btn-danger btn-block" onclick="changePw()">変更する</button>
+    <p id="pwmsg" style="font-size:13px;margin-top:6px"></p></div>`;
+}
+
+function periodSetup(){
+  const periods=getPeriods().slice().reverse();
+  const currentId=getCurrentPeriodId();
+  const now=new Date();
+  return`<button class="nav-back" onclick="go('adminMenu')">← 管理者メニュー</button>
+  <h1>評価期間設定</h1>
+  <div class="alert alert-info">月ごとに評価期間を作成し、現在使用する期間を「アクティブ」に設定してください。</div>
+  <div class="card"><h2>期間一覧</h2>
+    ${periods.length===0?'<p style="font-size:13px;color:#aaa;margin-bottom:12px">まだ期間がありません</p>':''}
+    ${periods.map(p=>`<div class="period-row">
+        <div style="flex:1"><span style="font-weight:700;font-size:14px">${p.label}</span>
+          ${p.id===currentId?'<span class="badge badge-active" style="margin-left:8px">● アクティブ</span>':''}</div>
+        <div style="display:flex;gap:6px;flex-shrink:0">
+          ${p.id!==currentId?`<button class="btn btn-secondary btn-sm" onclick="setActivePeriod('${p.id}')">アクティブにする</button>`:''}
+          <button class="btn btn-sm" style="background:#fce4ec;color:#c62828;border:none" onclick="removePeriod('${p.id}','${p.label}')">削除</button>
+        </div></div>`).join('')}
+  </div>
+  <div class="card"><h2>新しい期間を追加</h2>
+    <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
+      <div style="flex:1;min-width:100px"><label style="font-size:12px;color:#888;display:block;margin-bottom:4px">年</label>
+        <select id="p-year" style="margin:0">${[-1,0,1].map(d=>{const y=now.getFullYear()+d;return`<option value="${y}" ${d===0?'selected':''}>${y}年</option>`}).join('')}</select></div>
+      <div style="flex:1;min-width:100px"><label style="font-size:12px;color:#888;display:block;margin-bottom:4px">月</label>
+        <select id="p-month" style="margin:0">${Array.from({length:12},(_,i)=>i+1).map(m=>`<option value="${m}" ${m===now.getMonth()+1?'selected':''}>${m}月</option>`).join('')}</select></div>
+      <button class="btn btn-primary btn-sm" style="flex-shrink:0;margin-bottom:10px" onclick="addPeriod()">追加してアクティブに</button>
+    </div>
+    <p id="period-msg" style="font-size:13px;margin-top:4px;min-height:18px"></p></div>`;
+}
+
+function storeSetup(){
+  const stores=getStores();
+  return`<button class="nav-back" onclick="go('adminMenu')">← 管理者メニュー</button>
+  <h1>店舗設定</h1>
+  <div class="card"><h2>店舗一覧</h2>
+    ${stores.length===0?'<p style="font-size:13px;color:#aaa;margin-bottom:10px">まだ店舗が登録されていません</p>':''}
+    ${stores.map(st=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #f0f0f0">
+        <span style="flex:1;font-weight:600;font-size:14px">🏥 ${st}</span>
+        <span style="font-size:12px;color:#888">${staffInStore(st).length}名</span>
+        <button onclick="removeStore('${st}')" style="color:#c62828;background:none;border:none;cursor:pointer;font-size:20px;line-height:1;padding:0 4px">×</button>
+      </div>`).join('')}
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <input type="text" id="new-store" placeholder="店舗名（例：渋谷院）" style="margin:0;flex:1" onkeydown="if(event.key==='Enter')addStore()">
+      <button class="btn btn-primary" onclick="addStore()">追加</button>
+    </div>
+    <p id="store-msg" style="font-size:13px;margin-top:8px"></p></div>`;
+}
+
+function staffSetup(){
+  const stores=getStores();
+  if(stores.length===0)return`<button class="nav-back" onclick="go('adminMenu')">← 管理者メニュー</button>
+    <div class="alert alert-warn">先に店舗を登録してください。</div>
+    <button class="btn btn-primary btn-block" onclick="go('storeSetup')">店舗設定へ →</button>`;
+  return`<button class="nav-back" onclick="go('adminMenu')">← 管理者メニュー</button>
+  <h1>スタッフ設定</h1>
+  <div class="alert alert-info" style="font-size:12px">🔑 各スタッフにパスワードを設定してください。</div>
+  ${stores.map(st=>{const members=staffInStore(st);
+    return`<div class="store-head">🏥 ${st} <span style="font-size:12px;font-weight:500">${members.length}名</span></div>
+    <div class="card" style="margin-top:-6px">
+      ${members.length===0?'<p style="font-size:13px;color:#aaa;padding:4px 0">スタッフなし</p>':''}
+      ${members.map(m=>`<div class="staff-row">
+          <span style="font-weight:600;font-size:14px;min-width:80px">${m.name}</span>
+          <span style="font-size:12px;color:#888;white-space:nowrap">PW:</span>
+          <div class="pw-eye" style="margin:0;flex:1;max-width:180px">
+            <input type="password" id="pw_${m.name}" value="${m.password}" style="margin:0;font-size:13px;padding:7px 10px" onchange="updateStaffPw('${m.name}',this.value)">
+            <button onclick="togglePw('pw_${m.name}',this)" style="padding:7px 8px;width:36px;font-size:12px">👁</button>
+          </div>
+          <button onclick="removeStaff('${m.name}')" style="color:#c62828;background:none;border:none;cursor:pointer;font-size:20px;line-height:1;padding:0 4px;flex-shrink:0">×</button>
+        </div>`).join('')}
+      <div style="display:flex;gap:6px;margin-top:12px;flex-wrap:wrap;align-items:flex-end">
+        <input type="text" id="ns_${st}" placeholder="名前" style="margin:0;flex:1;min-width:80px;font-size:13px;padding:8px 10px">
+        <input type="text" id="np_${st}" placeholder="パスワード" style="margin:0;flex:1;min-width:80px;font-size:13px;padding:8px 10px">
+        <button class="btn btn-primary btn-sm" style="flex-shrink:0" onclick="addStaff('${st}')">追加</button>
+      </div>
+      <p id="smsg_${st}" style="font-size:12px;margin-top:6px;min-height:16px"></p>
+    </div>`;}).join('')}`;
+}
+
+function goalSetup(){
+  const stores=getStores(),staff=getStaff(),goals=getGoals();
+  if(staff.length===0)return`<button class="nav-back" onclick="go('adminMenu')">← 管理者メニュー</button>
+    <div class="alert alert-warn">先にスタッフを登録してください。</div>`;
+  return`<button class="nav-back" onclick="go('adminMenu')">← 管理者メニュー</button>
+  <h1>取り組み設定</h1>
+  <div class="alert alert-info">各スタッフの行動目標（1〜3項目）を選択してください。<br>設定した目標は期間をまたいで引き継がれます。</div>
+  ${stores.map(st=>{const members=staffInStore(st);if(members.length===0)return'';
+    return`<div class="store-head">🏥 ${st}</div>
+    ${members.map(s=>{const g=goals[s.name]||[];return`
+      <div class="card" style="cursor:pointer;margin-top:0;margin-bottom:10px" onclick="go('goalSetupEdit',{editTarget:'${s.name}'})">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <span style="font-weight:700;font-size:15px">${s.name}</span>
+          <span style="font-size:12px;color:#3949ab;font-weight:600">編集 →</span>
+        </div>
+        ${g.length===0?'<span style="font-size:13px;color:#e65100">未設定</span>'
+          :g.map(id=>{const item=ALL_ITEMS.find(i=>i.id===id);return item?`<span class="chip">${item.name}</span>`:''}).join('')}
+      </div>`;}).join('')}`;}).join('')}`;
+}
+
+function goalSetupEdit(){
+  const target=S.editTarget,goals=getGoals(),sel=goals[target]||[];
+  const reqCats=[...new Set(REQUIRED.map(i=>i.cat))];
+  const grCats=[...new Set(GROWTH.map(i=>i.cat))];
+  const chk=(item,type)=>`<div class="check-row">
+    <input type="checkbox" id="i_${item.id}" ${sel.includes(item.id)?'checked':''}
+      onchange="toggleGoal('${target}','${item.id}',this.checked,this)">
+    <label for="i_${item.id}">
+      <span class="badge ${type==='req'?'badge-req':'badge-grow'}">${type==='req'?'必修':'成長'}</span>
+      ${type==='grow'?`<span class="badge badge-stage">${item.stage}</span> `:''}${item.name}
+    </label></div>`;
+  return`<button class="nav-back" onclick="go('goalSetup')">← 取り組み一覧へ</button>
+  <h1>${target} さんの取り組み設定</h1>
+  <div class="alert alert-info">選択中：<strong id="sel-count">${sel.length}</strong> 項目（最大3項目）</div>
+  <div class="card"><div class="sec-head">■ 必修課題</div>
+    ${reqCats.map(cat=>`<h3 style="margin-top:12px">【${cat}】</h3>${REQUIRED.filter(i=>i.cat===cat).map(i=>chk(i,'req')).join('')}`).join('')}</div>
+  <div class="card"><div class="sec-head">■ 成長課題</div>
+    ${grCats.map(cat=>`<h3 style="margin-top:12px">【${cat}】</h3>${GROWTH.filter(i=>i.cat===cat).map(i=>chk(i,'grow')).join('')}`).join('')}</div>
+  <button class="btn btn-success btn-block" onclick="go('goalSetup')">✓ 保存して一覧へ戻る</button>`;
+}
+
+function evalList(){
+  const {user,userStore,periodId}=S;
+  const cp=getPeriods().find(p=>p.id===periodId);
+  const others=staffInStore(userStore).filter(s=>s.name!==user);
+  const goals=getGoals();
+  const doneCount=others.filter(s=>hasEval(periodId,user,s.name)).length;
+  const doneAll=others.length>0&&doneCount===others.length;
+  return`<button class="nav-back" onclick="go('home')">← ログアウト</button>
+  <h1>評価対象一覧</h1>
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+    <strong style="font-size:14px">${user}</strong>
+    <span class="badge badge-store">${userStore}</span>
+    ${cp?`<span class="badge badge-period">📅 ${cp.label}</span>`:''}
+  </div>
+  <div class="pbar"><div class="pbar-fill" style="width:${others.length?doneCount/others.length*100:0}%"></div></div>
+  ${doneAll?'<div class="alert alert-ok">✓ 全員の評価が完了しています</div>':''}
+  ${others.length===0?'<div class="alert alert-warn">同じ店舗に他のスタッフがいません。</div>':''}
+  <button class="btn btn-secondary btn-block" style="margin-bottom:14px" onclick="go('myFeedback',{user:'${user}',userStore:'${userStore}',periodId:'${periodId}'})">📊 自分へのフィードバックを見る</button>
+  <div class="grid2">
+    ${others.map(s=>{
+      const done=hasEval(periodId,user,s.name),cnt=(goals[s.name]||[]).length;
+      return`<div class="status-card" onclick="go('evalForm',{user:'${user}',userStore:'${userStore}',periodId:'${periodId}',evalTarget:'${s.name}'})">
+        <div class="s-name">${s.name}</div>
+        <div style="font-size:11px;color:#aaa;margin-top:2px">取り組み ${cnt}項目</div>
+        <div class="s-status ${done?'done':'pending'}">${done?'✓ 評価済み':'● 未評価'}</div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function evalForm(){
+  const {user,userStore,periodId,evalTarget}=S;
+  const cp=getPeriods().find(p=>p.id===periodId);
+  const goals=getGoals(),itemIds=goals[evalTarget]||[];
+  const existing=getEvals().find(e=>e.period_id===periodId&&e.evaluator===user&&e.target===evalTarget);
+  const exScores=existing?.scores||{};
+  const exComments=existing?.comments||{};
+  if(itemIds.length===0)return`<button class="nav-back" onclick="go('evalList',{user:'${user}',userStore:'${userStore}',periodId:'${periodId}'})">← 対象一覧へ</button>
+    <div class="alert alert-warn">⚠ ${evalTarget} さんの取り組みがまだ設定されていません。管理者にご確認ください。</div>`;
+  const items=itemIds.map(id=>ALL_ITEMS.find(i=>i.id===id)).filter(Boolean);
+  return`<button class="nav-back" onclick="go('evalList',{user:'${user}',userStore:'${userStore}',periodId:'${periodId}'})">← 対象一覧へ</button>
+  <h1>${evalTarget} さんの評価</h1>
+  <div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
+    <span style="font-size:13px;color:#777"><strong>${user}</strong> さんが評価中</span>
+    ${cp?`<span class="badge badge-period">📅 ${cp.label}</span>`:''}
+  </div>
+  ${items.map(item=>{
+    const isReq=REQUIRED.some(r=>r.id===item.id);
+    const curVal=exScores[item.id];
+    const curComment=exComments[item.id]||'';
+    return`<div class="card">
+      <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px">
+        <span class="badge ${isReq?'badge-req':'badge-grow'}">${isReq?'必修':'成長'}</span>
+        ${!isReq?`<span class="badge badge-stage">${item.stage}</span>`:''}
+        <span style="font-size:12px;color:#888">${item.cat}</span>
+      </div>
+      <div class="item-name">${item.name}</div>
+      ${item.desc?`<div class="item-desc">${item.desc}</div>`:''}
+      ${isReq?`
+        <details style="margin-bottom:10px">
+          <summary style="font-size:12px;color:#5c6bc0;font-weight:600;margin-top:6px">📋 採点基準を見る</summary>
+          <div style="margin-top:8px;display:flex;flex-direction:column;gap:6px">
+            ${item.opts.filter(([v])=>v<0).length>0?`
+              <div style="background:#fff3f3;border-radius:8px;padding:10px;border-left:3px solid #e53935">
+                <div style="font-size:11px;font-weight:700;color:#b71c1c;margin-bottom:6px">❌ NG（マイナス評価）</div>
+                ${item.opts.filter(([v])=>v<0).map(([v,l])=>`
+                  <div style="display:flex;align-items:baseline;gap:8px;font-size:12px;padding:3px 0;border-bottom:1px solid #fde8e8">
+                    <span style="font-weight:700;color:#c62828;min-width:40px;text-align:right;flex-shrink:0">${v}点</span>
+                    <span style="color:#444;line-height:1.5">${l.replace(/（[^）]+）$/,'')}</span>
+                  </div>`).join('')}
+              </div>`:''}
+            <div style="background:#f3f4ff;border-radius:8px;padding:10px;border-left:3px solid #3949ab">
+              <div style="font-size:11px;font-weight:700;color:#283593;margin-bottom:6px">📊 採点スケール</div>
+              ${item.opts.filter(([v])=>v>=0).map(([v,l])=>`
+                <div style="display:flex;align-items:baseline;gap:8px;font-size:12px;padding:3px 0;border-bottom:1px solid #e8eaf6">
+                  <span style="font-weight:700;color:#3949ab;min-width:40px;text-align:right;flex-shrink:0">${v>0?'+'+v:v}点</span>
+                  <span style="color:#444;line-height:1.5">${l.replace(/（[^）]+）$/,'')}</span>
+                </div>`).join('')}
+            </div>
+          </div>
+        </details>
+        <div class="score-wrap">
+          ${item.opts.map(([v,l])=>`<div class="score-opt">
+              <input type="radio" name="sc_${item.id}" id="r_${item.id}_${v}" value="${v}" ${curVal===v?'checked':''}>
+              <label for="r_${item.id}_${v}">${l}</label>
+            </div>`).join('')}
+        </div>`:`
+        <details style="margin-bottom:10px">
+          <summary style="font-size:12px;color:#2e7d32;font-weight:600;margin-top:6px">📋 評価基準を見る</summary>
+          <div style="margin-top:8px;display:flex;flex-direction:column;gap:6px">
+            <div style="background:#e8f5e9;border-radius:8px;padding:10px;border-left:3px solid #2e7d32">
+              <div style="font-size:11px;font-weight:700;color:#1b5e20;margin-bottom:5px">✅ OK（達成）の基準</div>
+              <div style="font-size:12px;line-height:1.8;color:#1a2e1a;white-space:pre-line">${item.ok||'記載の通り'}</div>
+            </div>
+            ${item.ng?`
+            <div style="background:#fff3f3;border-radius:8px;padding:10px;border-left:3px solid #e53935">
+              <div style="font-size:11px;font-weight:700;color:#b71c1c;margin-bottom:5px">❌ NG（未達）の基準</div>
+              <div style="font-size:12px;line-height:1.8;color:#2e1a1a;white-space:pre-line">${item.ng}</div>
+            </div>`:''}
+          </div>
+        </details>
+        <div class="gtoggle">
+          <button class="gbtn ${curVal===1?'ok':''}" onclick="setGrowth('${item.id}',1,this)">✓ OK（達成）</button>
+          <button class="gbtn ${curVal===0?'ng':''}" onclick="setGrowth('${item.id}',0,this)">✗ NG（未達）</button>
+        </div>`}
+      <div style="margin-top:12px">
+        <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">💬 評価の理由・コメント（任意）</label>
+        <textarea id="cm_${item.id}" placeholder="この評価をつけた理由や具体的なエピソードを書いてください…">${curComment}</textarea>
+      </div>
+    </div>`;
+  }).join('')}
+  <button class="btn btn-success btn-block" style="font-size:16px;padding:16px" onclick="submitEval()">評価を送信する</button>
+  <p id="eval-msg" style="font-size:13px;text-align:center;margin-top:8px;min-height:20px"></p>`;
+}
+function setGrowth(itemId,val,btn){
+  growthVals[itemId]=val;
+  btn.closest('.gtoggle').querySelectorAll('.gbtn').forEach(b=>b.classList.remove('ok','ng'));
+  btn.classList.add(val===1?'ok':'ng');
+}
+
+function myFeedback(){
+  const {user,userStore,periodId}=S;
+  const cp=getPeriods().find(p=>p.id===periodId);
+  const goals=getGoals(),itemIds=goals[user]||[];
+  const evals=getEvalsFor(user,periodId);
+  const n=evals.length;
+  if(itemIds.length===0)return`<button class="nav-back" onclick="go('evalList',{user:'${user}',userStore:'${userStore}',periodId:'${periodId}'})">← 戻る</button>
+    <div class="alert alert-warn">取り組みが設定されていません。管理者にご確認ください。</div>`;
+  const items=itemIds.map(id=>ALL_ITEMS.find(i=>i.id===id)).filter(Boolean);
+  return`<button class="nav-back" onclick="go('evalList',{user:'${user}',userStore:'${userStore}',periodId:'${periodId}'})">← 戻る</button>
+  <h1>あなたへのフィードバック</h1>
+  <div class="alert alert-info">🔒 評価は匿名で集計されています。誰が書いたかは表示されません。</div>
+  ${cp?`<div style="margin-bottom:12px"><span class="badge badge-period">📅 ${cp.label}</span> <span style="font-size:13px;color:#777">評価者数：<strong>${n}</strong>名</span></div>`:''}
+  ${n===0?'<div class="alert alert-warn">この期間のフィードバックはまだありません。評価が集まるとここに表示されます。</div>':''}
+  ${items.map(item=>{
+    const isReq=REQUIRED.some(r=>r.id===item.id);
+    const scores=evals.map(e=>e.scores[item.id]).filter(v=>v!==undefined);
+    let summary='';
+    if(isReq){
+      if(scores.length>0){
+        const avg=(scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(2);
+        const maxS=Math.max(...item.opts.map(([v])=>v));
+        const minS=Math.min(...item.opts.map(([v])=>v));
+        const pct=maxS!==minS?Math.max(0,Math.min(100,Math.round((parseFloat(avg)-minS)/(maxS-minS)*100))):50;
+        summary=`<div style="margin-top:10px">
+          <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:6px">
+            <span class="stat-num" style="color:#3949ab">${avg}</span>
+            <span style="font-size:14px;color:#888">点（平均）</span>
+          </div>
+          <div class="rate-bar"><div class="rate-fill" style="width:${pct}%;background:#3949ab"></div></div>
+          <div style="font-size:11px;color:#aaa;margin-top:4px">評価者数: ${scores.length}名</div>
+        </div>`;
+      }else summary='<span style="font-size:13px;color:#aaa">評価なし</span>';
+    }else{
+      if(scores.length>0){
+        const ok=scores.filter(v=>v===1).length;
+        const pct=Math.round(ok/scores.length*100);
+        summary=`<div style="margin-top:10px">
+          <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:6px">
+            <span class="stat-num" style="color:${pct>=60?'#2e7d32':'#bf360c'}">${pct}%</span>
+            <span style="font-size:14px;color:#888">達成率</span>
+          </div>
+          <div class="rate-bar"><div class="rate-fill" style="width:${pct}%;background:${pct>=60?'#2e7d32':'#ef5350'}"></div></div>
+          <div style="font-size:11px;color:#aaa;margin-top:4px">${n}名中 ${ok}名がOK</div>
+        </div>`;
+      }else summary='<span style="font-size:13px;color:#aaa">評価なし</span>';
+    }
+    const withComment=evals.filter(e=>(e.comments||{})[item.id]);
+    const anonComments=withComment.length===0?'':`
+      <details style="margin-top:8px">
+        <summary>▸ コメント（匿名・${withComment.length}件）</summary>
+        <div style="margin-top:8px;display:flex;flex-direction:column;gap:6px">
+          ${withComment.map(e=>`<div class="comment-box">${(e.comments||{})[item.id]}</div>`).join('')}
+        </div>
+      </details>`;
+    return`<div class="card">
+      <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px">
+        <span class="badge ${isReq?'badge-req':'badge-grow'}">${isReq?'必修':'成長'}</span>
+        ${!isReq?`<span class="badge badge-stage">${item.stage}</span>`:''}
+        <span style="font-size:12px;color:#888">${item.cat}</span>
+      </div>
+      <div style="font-weight:700;font-size:14px">${item.name}</div>
+      ${summary}${anonComments}
+    </div>`;
+  }).join('')}`;
+}
+
+function adminStatus(){
+  const stores=getStores(),cp=getCurrentPeriod();
+  if(!cp)return`<button class="nav-back" onclick="go('adminMenu')">← 管理者メニュー</button>
+    <div class="alert alert-warn">評価期間が設定されていません。</div>`;
+  return`<button class="nav-back" onclick="go('adminMenu')">← 管理者メニュー</button>
+  <h1>評価状況確認</h1>
+  <div class="alert alert-info">📅 ${cp.label} の提出状況</div>
+  ${stores.map(st=>{const members=staffInStore(st);if(members.length===0)return'';
+    return`<div class="store-head">🏥 ${st}</div>
+    ${members.map(evaluator=>{
+      const targets=members.filter(s=>s.name!==evaluator.name);
+      const done=targets.filter(t=>hasEval(cp.id,evaluator.name,t.name));
+      return`<div class="card" style="margin-top:0;margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span style="font-weight:700;font-size:14px">${evaluator.name}</span>
+          <span style="font-size:13px;font-weight:600;color:${done.length===targets.length?'#2e7d32':'#e65100'}">${done.length}/${targets.length}完了</span>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px">
+          ${targets.map(t=>{const d=hasEval(cp.id,evaluator.name,t.name);
+            return`<span style="font-size:12px;padding:3px 9px;border-radius:10px;background:${d?'#e8f5e9':'#fce4ec'};color:${d?'#1b5e20':'#b71c1c'}">${t.name}</span>`;}).join('')}
+        </div>
+      </div>`;}).join('')}`;}).join('')}`;
+}
+
+function feedbackMenu(){
+  const stores=getStores();
+  return`<button class="nav-back" onclick="go('adminMenu')">← 管理者メニュー</button>
+  <h1>フィードバック閲覧</h1>
+  <div class="alert alert-info">📊 評価結果は匿名集計。月別・トレンドで確認できます。評価者名つきの詳細は管理者専用です。</div>
+  ${stores.map(st=>{const members=staffInStore(st);if(members.length===0)return'';
+    return`<div class="store-head">🏥 ${st}</div>
+    ${members.map(s=>{
+      const totalEvals=getEvalsFor(s.name).length;
+      const periods=getPeriods().filter(p=>getEvals().some(e=>e.target===s.name&&e.period_id===p.id));
+      return`<div class="card" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;margin-top:0;margin-bottom:10px"
+        onclick="go('feedbackView',{fbTarget:'${s.name}',fbMode:'period',fbPeriodId:'${getCurrentPeriodId()||''}'})">
+        <div>
+          <div style="font-weight:700;font-size:15px">${s.name}</div>
+          <div style="font-size:12px;color:#888;margin-top:3px">${periods.length}期間分のデータ ／ 合計${totalEvals}件</div>
+        </div>
+        <span style="font-size:13px;color:#3949ab;font-weight:600">詳細 →</span>
+      </div>`;}).join('')}`;}).join('')}`;
+}
+
+function feedbackView(){
+  const {fbTarget:target,fbMode,fbPeriodId}=S;
+  const goals=getGoals(),itemIds=goals[target]||[];
+  const allPeriods=getPeriods().filter(p=>getEvals().some(e=>e.target===target&&e.period_id===p.id));
+  const memberInfo=findStaff(target);
+  const tabs=`<div class="tab-row">
+    <button class="tab-btn ${fbMode==='trend'?'active':''}" onclick="S.fbMode='trend';render()">📈 トレンド（全期間）</button>
+    ${allPeriods.slice().reverse().map(p=>`
+      <button class="tab-btn ${fbMode==='period'&&fbPeriodId===p.id?'active':''}"
+        onclick="S.fbMode='period';S.fbPeriodId='${p.id}';render()">${p.label}</button>`).join('')}
+    ${allPeriods.length===0?'<span style="font-size:13px;color:#aaa;padding:8px">まだ評価データがありません</span>':''}
+  </div>`;
+  const header=`<button class="nav-back" onclick="go('feedbackMenu')">← 一覧へ</button>
+  <h1>${target} さんへのフィードバック</h1>
+  <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+    ${memberInfo?`<span class="badge badge-store">${memberInfo.store}</span>`:''}
+  </div>
+  ${itemIds.length===0?'<div class="alert alert-warn">取り組みが設定されていません。</div>':''}
+  ${tabs}`;
+  if(itemIds.length===0)return header;
+  const items=itemIds.map(id=>ALL_ITEMS.find(i=>i.id===id)).filter(Boolean);
+
+  if(fbMode==='trend'){
+    if(allPeriods.length===0)return header+'<div class="alert alert-warn">まだ評価データがありません。</div>';
+    function calcValue(item,periodId){
+      const isReq=REQUIRED.some(r=>r.id===item.id);
+      const ev=getEvalsFor(target,periodId);
+      const scores=ev.map(e=>e.scores[item.id]).filter(v=>v!==undefined);
+      if(scores.length===0)return null;
+      if(isReq)return scores.reduce((a,b)=>a+b,0)/scores.length;
+      return Math.round(scores.filter(v=>v===1).length/scores.length*100);
+    }
+    function trendArrow(vals){
+      const f=vals.filter(v=>v!==null);if(f.length<2)return'';
+      const last=f[f.length-1],prev=f[f.length-2];
+      if(last>prev)return'<span class="trend-up">▲</span>';
+      if(last<prev)return'<span class="trend-dn">▼</span>';
+      return'<span class="trend-eq">─</span>';
+    }
+    function cellColor(item,val){
+      if(val===null)return'color:#ccc';
+      const isReq=REQUIRED.some(r=>r.id===item.id);
+      if(isReq){const maxS=Math.max(...item.opts.map(([v])=>v));const minS=Math.min(...item.opts.map(([v])=>v));
+        const pct=(val-minS)/(maxS-minS);
+        if(pct>=0.7)return'color:#1b5e20;font-weight:700';if(pct>=0.4)return'color:#283593';return'color:#b71c1c';
+      }else{if(val>=80)return'color:#1b5e20;font-weight:700';if(val>=50)return'color:#283593';return'color:#b71c1c';}
+    }
+    const trendTable=`<div class="trend-wrap"><table class="trend-table">
+      <thead><tr><th class="left" style="min-width:120px">取り組み</th>
+        ${allPeriods.map(p=>`<th>${p.label}</th>`).join('')}<th>推移</th></tr></thead>
+      <tbody>${items.map(item=>{
+        const isReq=REQUIRED.some(r=>r.id===item.id);
+        const vals=allPeriods.map(p=>calcValue(item,p.id));
+        return`<tr><td class="label"><span class="badge ${isReq?'badge-req':'badge-grow'}" style="margin-right:4px">${isReq?'必修':'成長'}</span>${item.name}</td>
+          ${vals.map(v=>`<td style="${cellColor(item,v)}">${v===null?'─':isReq?v.toFixed(1)+'点':v+'%'}</td>`).join('')}
+          <td style="text-align:center">${trendArrow(vals)}</td></tr>`;}).join('')}
+      </tbody></table></div>`;
+    return header+`<div class="card">${trendTable}</div>`;
+  }
+
+  const selectedPeriod=getPeriods().find(p=>p.id===fbPeriodId);
+  const evals=getEvalsFor(target,fbPeriodId);
+  const n=evals.length;
+  return header+
+  `${selectedPeriod?`<div class="alert alert-info" style="margin-bottom:6px">📅 <strong>${selectedPeriod.label}</strong> ／ 評価者数：<strong>${n}</strong>名</div>`:''}
+  ${n===0?'<div class="alert alert-warn">この期間の評価がまだありません。</div>':''}
+  ${items.map(item=>{
+    const isReq=REQUIRED.some(r=>r.id===item.id);
+    const scores=evals.map(e=>e.scores[item.id]).filter(v=>v!==undefined);
+    let summary='';
+    if(isReq){
+      if(scores.length>0){
+        const avg=(scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(2);
+        const maxS=Math.max(...item.opts.map(([v])=>v));const minS=Math.min(...item.opts.map(([v])=>v));
+        const pct=maxS!==minS?Math.max(0,Math.min(100,Math.round((parseFloat(avg)-minS)/(maxS-minS)*100))):50;
+        summary=`<div style="margin-top:10px">
+          <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:6px">
+            <span class="stat-num" style="color:#3949ab">${avg}</span><span style="font-size:14px;color:#888">点（平均）</span>
+          </div>
+          <div class="rate-bar"><div class="rate-fill" style="width:${pct}%;background:#3949ab"></div></div>
+          <div style="font-size:11px;color:#aaa;margin-top:4px">内訳: ${scores.join(', ')} 点</div></div>`;
+      }else summary='<span style="font-size:13px;color:#aaa">評価なし</span>';
+    }else{
+      if(scores.length>0){
+        const ok=scores.filter(v=>v===1).length;const pct=Math.round(ok/scores.length*100);
+        summary=`<div style="margin-top:10px">
+          <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:6px">
+            <span class="stat-num" style="color:${pct>=60?'#2e7d32':'#bf360c'}">${pct}%</span><span style="font-size:14px;color:#888">達成率</span>
+          </div>
+          <div class="rate-bar"><div class="rate-fill" style="width:${pct}%;background:${pct>=60?'#2e7d32':'#ef5350'}"></div></div>
+          <div style="font-size:11px;color:#aaa;margin-top:4px">${n}名中 ${ok}名がOK</div></div>`;
+      }else summary='<span style="font-size:13px;color:#aaa">評価なし</span>';
+    }
+    const withComment=evals.filter(e=>(e.comments||{})[item.id]);
+    const anonComments=withComment.length===0?'':`
+      <details style="margin-top:8px"><summary>▸ コメント一覧（匿名・${withComment.length}件）</summary>
+        <div style="margin-top:8px;display:flex;flex-direction:column;gap:6px">
+          ${withComment.map(e=>`<div class="comment-box">${(e.comments||{})[item.id]}</div>`).join('')}
+        </div></details>`;
+    const adminDetail=`<details style="margin-top:6px"><summary>▸ 評価者別詳細（管理者専用）</summary>
+        <div style="margin-top:8px;padding:10px;background:#f8f9ff;border-radius:8px">
+          ${evals.length===0?'<span style="font-size:13px;color:#aaa">評価なし</span>':
+          evals.map(e=>{const cm=(e.comments||{})[item.id];
+            const lbl=e.scores[item.id]!==undefined?(isReq?e.scores[item.id]+'点':e.scores[item.id]===1?'OK':'NG'):'-';
+            return`<div style="padding:7px 0;border-bottom:1px solid #eee">
+              <div style="display:flex;justify-content:space-between;font-size:12px">
+                <span style="color:#555;font-weight:600">${e.evaluator}</span>
+                <span style="font-weight:700;color:#3949ab">${lbl}</span>
+              </div>
+              ${cm?`<div style="font-size:11px;color:#555;margin-top:5px;padding:5px 8px;background:#fff;border-radius:5px;border-left:2px solid #7986cb;line-height:1.6">${cm}</div>`:''}</div>`;}).join('')}
+        </div></details>`;
+    return`<div class="card">
+      <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px">
+        <span class="badge ${isReq?'badge-req':'badge-grow'}">${isReq?'必修':'成長'}</span>
+        ${!isReq?`<span class="badge badge-stage">${item.stage}</span>`:''}
+        <span style="font-size:12px;color:#888">${item.cat}</span>
+      </div>
+      <div style="font-weight:700;font-size:14px">${item.name}</div>
+      ${summary}${anonComments}${adminDetail}
+    </div>`;}).join('')}`;
+}
+
+async function addStore(){
+  const name=$('new-store')?.value?.trim(),msg=$('store-msg');if(!name)return;
+  if(C.stores.includes(name)){msg.textContent='同じ店舗名が既に登録されています';msg.style.color='#c62828';return;}
+  msg.textContent=`✓ ${name} を追加しました`;msg.style.color='#2e7d32';await addStoreDB(name);
+}
+async function removeStore(name){
+  const cnt=staffInStore(name).length;
+  if(!confirm(`「${name}」を削除しますか？\n所属スタッフ${cnt}名と評価データも削除されます。`))return;
+  await removeStoreDB(name);
+}
+async function addStaff(store){
+  const name=$(`ns_${store}`)?.value?.trim(),pw=$(`np_${store}`)?.value?.trim();
+  const msg=$(`smsg_${store}`);
+  if(!name||!pw){if(msg){msg.textContent='名前とパスワードを入力してください';msg.style.color='#c62828';}return;}
+  if(C.staff.some(s=>s.name===name)){if(msg){msg.textContent='同じ名前が既に登録されています';msg.style.color='#c62828';}return;}
+  if(msg){msg.textContent=`✓ ${name} を追加しました`;msg.style.color='#2e7d32';}await addStaffDB(name,store,pw);
+}
+async function removeStaff(name){
+  if(!confirm(`${name} を削除しますか？\n関連する評価データも削除されます。`))return;await removeStaffDB(name);
+}
+async function updateStaffPw(name,pw){await updateStaffPwDB(name,pw);}
+async function toggleGoal(target,itemId,checked,el){await toggleGoalDB(target,itemId,checked,el);}
+async function addPeriod(){
+  const year=parseInt($('p-year')?.value),month=parseInt($('p-month')?.value);
+  const label=`${year}年${month}月`,msg=$('period-msg');
+  if(C.periods.some(p=>p.year===year&&p.month===month)){msg.textContent=`${label} は既に登録されています`;msg.style.color='#c62828';return;}
+  const id='p_'+Date.now();msg.textContent=`✓ ${label} を追加してアクティブにしました`;msg.style.color='#2e7d32';
+  await addPeriodDB(id,label,year,month);
+}
+async function setActivePeriod(id){await setActivePeriodDB(id);}
+async function removePeriod(id,label){
+  const cnt=C.evals.filter(e=>e.period_id===id).length;
+  if(!confirm(`「${label}」を削除しますか？\n${cnt}件の評価データも削除されます。`))return;await removePeriodDB(id);
+}
+async function changePw(){
+  const p1=$('np1')?.value,p2=$('np2')?.value,msg=$('pwmsg');
+  if(!p1||p1.length<4){msg.textContent='4文字以上で入力してください';msg.style.color='#c62828';return;}
+  if(p1!==p2){msg.textContent='パスワードが一致しません';msg.style.color='#c62828';return;}
+  msg.textContent='✓ 変更しました';msg.style.color='#2e7d32';await changePwDB(p1);
+}
+async function submitEval(){
+  const {user,userStore,periodId,evalTarget}=S;
+  const itemIds=getGoals()[evalTarget]||[];
+  const items=itemIds.map(id=>ALL_ITEMS.find(i=>i.id===id)).filter(Boolean);
+  const scores={},comments={};let allFilled=true;
+  for(const item of items){
+    const isReq=REQUIRED.some(r=>r.id===item.id);
+    if(isReq){
+      const sel=document.querySelector(`input[name="sc_${item.id}"]:checked`);
+      if(!sel){allFilled=false;break;}scores[item.id]=parseFloat(sel.value);
+    }else{
+      if(growthVals[item.id]===undefined){allFilled=false;break;}scores[item.id]=growthVals[item.id];
+    }
+    const cm=document.getElementById('cm_'+item.id);
+    if(cm&&cm.value.trim())comments[item.id]=cm.value.trim();
+  }
+  if(!allFilled){const m=$('eval-msg');m.textContent='⚠ 全ての項目を評価してください';m.style.color='#c62828';return;}
+  const btn=document.querySelector('.btn-success');if(btn){btn.textContent='送信中…';btn.disabled=true;}
+  await saveEval(periodId,user,evalTarget,scores,comments);
+  go('evalList',{user,userStore,periodId});
+}
+
+async function initApp(){
+  app.innerHTML=`<div style="text-align:center;padding:80px 20px">
+    <div style="font-size:28px;margin-bottom:16px">⏳</div>
+    <div style="font-size:15px;font-weight:600;color:#3949ab;margin-bottom:8px">データを読み込んでいます…</div>
+    <div style="font-size:13px;color:#888">しばらくお待ちください</div></div>`;
+  try{await loadAll();render();}catch(e){
+    app.innerHTML=`<div style="text-align:center;padding:60px 20px">
+      <div style="font-size:32px;margin-bottom:16px">⚠️</div>
+      <div style="font-size:15px;font-weight:600;color:#c62828;margin-bottom:10px">接続エラー</div>
+      <div style="font-size:13px;color:#666;margin-bottom:6px">Supabaseに接続できませんでした。</div>
+      <div style="font-size:12px;color:#aaa;margin-bottom:24px">URLとAPIキーをご確認ください。</div>
+      <button class="btn btn-primary" onclick="initApp()">再試行</button></div>`;
+  }
+}
+initApp();
+</script>
+</body>
+</html>
