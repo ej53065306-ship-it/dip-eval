@@ -494,7 +494,7 @@ const app=document.getElementById('app');
 
 function render(){
   const map={home,staffLogin,adminLogin,adminMenu,storeSetup,staffSetup,
-    periodSetup,goalSetup,goalSetupEdit,evalList,evalForm,
+    periodSetup,goalSetup,goalSetupEdit,evalList,evalForm,myFeedback,
     adminStatus,feedbackMenu,feedbackView};
   app.innerHTML=(map[S.screen]||(() =>''))();
 }
@@ -871,7 +871,7 @@ function evalList(){
   <div class="pbar"><div class="pbar-fill" style="width:${others.length?doneCount/others.length*100:0}%"></div></div>
   ${doneAll?'<div class="alert alert-ok">✓ 全員の評価が完了しています</div>':''}
   ${others.length===0?'<div class="alert alert-warn">同じ店舗に他のスタッフがいません。</div>':''}
-  <div class="grid2">
+  <button class="btn btn-secondary btn-block" style="margin-bottom:14px" onclick="go('myFeedback',{user:'${user}',userStore:'${userStore}',periodId:'${periodId}'})">📊 自分へのフィードバックを見る</button>   <div class="grid2">
     ${others.map(s=>{
       const done=hasEval(periodId,user,s.name),cnt=(goals[s.name]||[]).length;
       return`<div class="status-card" onclick="go('evalForm',{user:'${user}',userStore:'${userStore}',periodId:'${periodId}',evalTarget:'${s.name}'})">
@@ -994,7 +994,7 @@ function submitEval(){
   go('evalList',{user,userStore,periodId});
 }
 
-/* ══════ 評価状況確認 ══════ */
+/* ══════ 自分のフィードバック ══════ */ function myFeedback(){   const {user,userStore,periodId}=S;   const cp=getPeriods().find(p=>p.id===periodId);   const goals=getGoals(),itemIds=goals[user]||[];   const evals=getEvalsFor(user,periodId);   const n=evals.length;   if(itemIds.length===0)return`<button class="nav-back" onclick="go('evalList',{user:'${user}',userStore:'${userStore}',periodId:'${periodId}'})">← 戻る</button>     <div class="alert alert-warn">取り組みが設定されていません。</div>`;   const items=itemIds.map(id=>ALL_ITEMS.find(i=>i.id===id)).filter(Boolean);   return`<button class="nav-back" onclick="go('evalList',{user:'${user}',userStore:'${userStore}',periodId:'${periodId}'})">← 戻る</button>   <h1>あなたへのフィードバック</h1>   <div class="alert alert-info">🔒 評価は匿名で集計されています。誰が書いたかは表示されません。</div>   ${cp?`<div style="margin-bottom:12px"><span class="badge badge-period">📅 ${cp.label}</span> <span style="font-size:13px;color:#777">評価者数：<strong>${n}</strong>名</span></div>`:''}   ${n===0?'<div class="alert alert-warn">この期間のフィードバックはまだありません。</div>':''}   ${items.map(item=>{     const isReq=REQUIRED.some(r=>r.id===item.id);     const scores=evals.map(e=>e.scores[item.id]).filter(v=>v!==undefined);     let summary='';     if(isReq){       if(scores.length>0){         const avg=(scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(2);         const maxS=Math.max(...item.opts.map(([v])=>v));         const minS=Math.min(...item.opts.map(([v])=>v));         const pct=maxS!==minS?Math.max(0,Math.min(100,Math.round((parseFloat(avg)-minS)/(maxS-minS)*100))):50;         summary=`<div style="margin-top:10px"><div style="display:flex;align-items:baseline;gap:6px;margin-bottom:6px"><span class="stat-num" style="color:#3949ab">${avg}</span><span style="font-size:14px;color:#888">点（平均）</span></div><div class="rate-bar"><div class="rate-fill" style="width:${pct}%;background:#3949ab"></div></div><div style="font-size:11px;color:#aaa;margin-top:4px">評価者数: ${scores.length}名</div></div>`;       }else summary='<span style="font-size:13px;color:#aaa">評価なし</span>';     }else{       if(scores.length>0){         const ok=scores.filter(v=>v===1).length;         const pct=Math.round(ok/scores.length*100);         summary=`<div style="margin-top:10px"><div style="display:flex;align-items:baseline;gap:6px;margin-bottom:6px"><span class="stat-num" style="color:${pct>=60?'#2e7d32':'#bf360c'}">${pct}%</span><span style="font-size:14px;color:#888">達成率</span></div><div class="rate-bar"><div class="rate-fill" style="width:${pct}%;background:${pct>=60?'#2e7d32':'#ef5350'}"></div></div><div style="font-size:11px;color:#aaa;margin-top:4px">${n}名中 ${ok}名がOK</div></div>`;       }else summary='<span style="font-size:13px;color:#aaa">評価なし</span>';     }     const withComment=evals.filter(e=>(e.comments||{})[item.id]);     const anonComments=withComment.length===0?'':`<details style="margin-top:8px"><summary>▸ コメント（匿名・${withComment.length}件）</summary><div style="margin-top:8px;display:flex;flex-direction:column;gap:6px">${withComment.map(e=>`<div class="comment-box">${(e.comments||{})[item.id]}</div>`).join('')}</div></details>`;     return`<div class="card"><div style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><span class="badge ${isReq?'badge-req':'badge-grow'}">${isReq?'必修':'成長'}</span>${!isReq?`<span class="badge badge-stage">${item.stage}</span>`:''}<span style="font-size:12px;color:#888">${item.cat}</span></div><div style="font-weight:700;font-size:14px">${item.name}</div>${summary}${anonComments}</div>`;   }).join('')}`; }  /* ══════ 評価状況確認 ══════ */
 function adminStatus(){
   const stores=getStores(),cp=getCurrentPeriod();
   if(!cp)return`<button class="nav-back" onclick="go('adminMenu')">← 管理者メニュー</button>
