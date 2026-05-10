@@ -620,7 +620,7 @@ function adminMenu(){
     <p style="font-size:13px;color:#777;margin-bottom:10px">月別集計・トレンドを閲覧します（管理者専用）</p>
     <button class="btn btn-secondary btn-block" onclick="go('feedbackMenu')">フィードバックを見る →</button>
   </div>
-  <div class="card" style="border:1px solid #ffcdd2">
+  <div class="card">     <h2>⑦ スタッフFB公開設定</h2>     <p style="font-size:13px;color:#777;margin-bottom:10px">スタッフが「自分へのフィードバック」を閲覧できるか設定します。現在：<strong>${C.settings.feedbackVisible==='true'?'✅ 公開中':'🔒 非公開'}</strong></p>     <button class="btn ${C.settings.feedbackVisible==='true'?'btn-warn':'btn-success'} btn-block" onclick="toggleFeedback()">${C.settings.feedbackVisible==='true'?'非公開にする':'公開する'}</button>   </div>   <div class="card" style="border:1px solid #ffcdd2">
     <h2 style="color:#c62828">⑦ 管理者パスワード変更</h2>
     <input type="password" id="np1" placeholder="新しいパスワード（4文字以上）">
     <input type="password" id="np2" placeholder="確認入力">
@@ -871,7 +871,7 @@ function evalList(){
   <div class="pbar"><div class="pbar-fill" style="width:${others.length?doneCount/others.length*100:0}%"></div></div>
   ${doneAll?'<div class="alert alert-ok">✓ 全員の評価が完了しています</div>':''}
   ${others.length===0?'<div class="alert alert-warn">同じ店舗に他のスタッフがいません。</div>':''}
-  <button class="btn btn-secondary btn-block" style="margin-bottom:14px" onclick="go('myFeedback',{user:'${user}',userStore:'${userStore}',periodId:'${periodId}'})">📊 自分へのフィードバックを見る</button>   <div class="grid2">
+  ${fbBtn(user,userStore,periodId)}   <div class="grid2">
     ${others.map(s=>{
       const done=hasEval(periodId,user,s.name),cnt=(goals[s.name]||[]).length;
       return`<div class="status-card" onclick="go('evalForm',{user:'${user}',userStore:'${userStore}',periodId:'${periodId}',evalTarget:'${s.name}'})">
@@ -1262,7 +1262,7 @@ async function removePeriod(id,label){
   if(!confirm(`「${label}」を削除しますか？\n${cnt}件の評価データも削除されます。`))return;
   await removePeriodDB(id);
 }
-async function changePw(){
+function fbBtn(u,us,pid){return C.settings.feedbackVisible==='true'?`<button class="btn btn-secondary btn-block" style="margin-bottom:14px" onclick="go('myFeedback',{user:'${u}',userStore:'${us}',periodId:'${pid}'})">📊 自分へのフィードバックを見る</button>`:''} async function toggleFeedback(){const v=C.settings.feedbackVisible==='true';C.settings.feedbackVisible=(!v).toString();await sbUpsert('settings',{key:'feedbackVisible',value:C.settings.feedbackVisible},'key');render();} async function changePw(){
   const p1=$('np1')?.value,p2=$('np2')?.value,msg=$('pwmsg');
   if(!p1||p1.length<4){msg.textContent='4文字以上で入力してください';msg.style.color='#c62828';return;}
   if(p1!==p2){msg.textContent='パスワードが一致しません';msg.style.color='#c62828';return;}
