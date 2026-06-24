@@ -910,7 +910,7 @@ function evalForm(){
         ${!isReq?`<span class="badge badge-stage">${item.stage}</span>`:''}
         <span style="font-size:12px;color:#888">${item.cat}</span>
       </div>
-      <div class="item-name">${item.name}</div>
+      <div class="item-name">${item.name}</div>       ${getPastEvalHtml(user,evalTarget,periodId,item.id)}       ${getPastEvalHtml(user,evalTarget,periodId,item.id)}
       ${item.desc?`<div class="item-desc">${item.desc}</div>`:''}
       ${isReq?`
         <details style="margin-bottom:10px">
@@ -1262,7 +1262,7 @@ async function removePeriod(id,label){
   if(!confirm(`「${label}」を削除しますか？\n${cnt}件の評価データも削除されます。`))return;
   await removePeriodDB(id);
 }
-function fbBtn(u,us,pid){return C.settings.feedbackVisible==='true'?`<button class="btn btn-secondary btn-block" style="margin-bottom:14px" onclick="go('myFeedback',{user:'${u}',userStore:'${us}',periodId:'${pid}'})">📊 自分へのフィードバックを見る</button>`:''} async function toggleFeedback(){const v=C.settings.feedbackVisible==='true';C.settings.feedbackVisible=(!v).toString();await sbUpsert('settings',{key:'feedbackVisible',value:C.settings.feedbackVisible},'key');render();} async function changePw(){
+function getPastEvalHtml(user,evalTarget,periodId,itemId){const pe=getEvals().filter(e=>e.evaluator===user&&e.target===evalTarget&&e.period_id!==periodId).sort((a,b)=>{const pa=getPeriods().find(p=>p.id===a.period_id),pb=getPeriods().find(p=>p.id===b.period_id);if(!pa||!pb)return 0;return pb.year!==pa.year?pb.year-pa.year:pb.month-pa.month;});if(!pe.length)return'';const list=pe.map(e=>{const pp=getPeriods().find(p=>p.id===e.period_id);const sc=e.scores[itemId];const cm=(e.comments||{})[itemId];const lbl=sc!==undefined?(REQUIRED.some(r=>r.id===itemId)?sc+'点':sc===1?'OK':'NG'):'未評価';return`<div style="padding:8px 10px;background:#f8f9ff;border-radius:8px;border-left:3px solid #9fa8da;margin-bottom:4px"><div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:#555;font-weight:600">${pp?pp.label:'不明'}</span><span style="font-weight:700;color:#3949ab">${lbl}</span></div>${cm?`<div style="font-size:11px;color:#666;line-height:1.5;margin-top:3px">${cm}</div>`:''}</div>`;}).join('');return`<details style="margin-bottom:8px"><summary style="font-size:12px;color:#7986cb;font-weight:600;margin-top:4px">📋 過去の評価を見る（${pe.length}件）</summary><div style="margin-top:8px">${list}</div></details>`;} function fbBtn(u,us,pid){return C.settings.feedbackVisible==='true'?`<button class="btn btn-secondary btn-block" style="margin-bottom:14px" onclick="go('myFeedback',{user:'${u}',userStore:'${us}',periodId:'${pid}'})">📊 自分へのフィードバックを見る</button>`:''} async function toggleFeedback(){const v=C.settings.feedbackVisible==='true';C.settings.feedbackVisible=(!v).toString();await sbUpsert('settings',{key:'feedbackVisible',value:C.settings.feedbackVisible},'key');render();} async function changePw(){
   const p1=$('np1')?.value,p2=$('np2')?.value,msg=$('pwmsg');
   if(!p1||p1.length<4){msg.textContent='4文字以上で入力してください';msg.style.color='#c62828';return;}
   if(p1!==p2){msg.textContent='パスワードが一致しません';msg.style.color='#c62828';return;}
